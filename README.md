@@ -11,10 +11,10 @@ go get github.com/citizenwallet/nostr-eth
 ## Features
 
 - **Ethereum Transaction Log Support**: Create and manage Nostr events for Ethereum transaction logs
-- **ERC20 Transfer Support**: Specialized handling for ERC20 token transfers
 - **Status Updates**: Track transaction status changes (pending, confirmed, failed, cancelled)
 - **Nostr Event Creation**: Generate properly formatted Nostr events with appropriate tags
 - **Event Parsing**: Parse Nostr events back into structured data
+- **Data Outputter Interface**: Flexible interface for different data sources
 
 ## Usage
 
@@ -25,7 +25,7 @@ package main
 
 import (
     "fmt"
-    "github.com/citizenwallet/nostr-eth/pkg/eth"
+    "github.com/citizenwallet/nostr-eth/pkg/eth/log"
 )
 
 func main() {
@@ -38,10 +38,15 @@ func main() {
         "value":      "1000000000000000000", // value (1 token with 18 decimals)
         "nonce":      12345,
         "status":     "pending",
+        "chain_id":   "1", // Ethereum mainnet
+        "created_at": time.Now().Unix(),
     }
 
+    // Create a data outputter
+    dataOutputter := log.NewMapDataOutputter(logData)
+
     // Create a Nostr event
-    event, err := eth.CreateTxLogEvent(eth.NewMapDataOutputter(logData), "your_private_key_here")
+    event, err := log.CreateTxLogEvent(dataOutputter, "your_private_key_here")
     if err != nil {
         panic(err)
     }
@@ -57,7 +62,17 @@ func main() {
 logData["status"] = "confirmed"
 
 // Create an update event
-updateEvent, err := eth.UpdateTxLogEvent(logData, "your_private_key_here")
+updateEvent, err := log.UpdateTxLogEvent(logData, "your_private_key_here")
+if err != nil {
+    panic(err)
+}
+```
+
+### Status Update with Original Event Reference
+
+```go
+// Update log status with reference to original event
+updateEvent, err := log.UpdateLogStatusEvent(logData, "confirmed", "your_private_key_here", "original_event_id")
 if err != nil {
     panic(err)
 }
@@ -67,7 +82,7 @@ if err != nil {
 
 ```go
 // Parse a Nostr event back into structured data
-parsedEvent, err := eth.ParseTxLogEvent(nostrEvent)
+parsedEvent, err := log.ParseTxLogEvent(nostrEvent)
 if err != nil {
     panic(err)
 }
@@ -78,78 +93,61 @@ fmt.Printf("Log hash: %s\n", parsedEvent.LogData["hash"])
 
 ## Data Structures
 
-### Log
+### TxLogEvent
 
-Represents an Ethereum transaction log:
+Represents a Nostr event for transaction logs:
 
 ```go
-type Log struct {
-    Hash      string           `json:"hash"`
-    TxHash    string           `json:"tx_hash"`
-    CreatedAt time.Time        `json:"created_at"`
-    UpdatedAt time.Time        `json:"updated_at"`
-    Nonce     int64            `json:"nonce"`
-    Sender    string           `json:"sender"`
-    To        string           `json:"to"`
-    Value     *big.Int         `json:"value"`
-    Data      *json.RawMessage `json:"data"`
-    ExtraData *json.RawMessage `json:"extra_data"`
-    Status    LogStatus        `json:"status"`
+type TxLogEvent struct {
+    LogData   map[string]interface{} `json:"log_data"`
+    EventType string                 `json:"event_type"`
+    Tags      []string               `json:"tags,omitempty"`
 }
 ```
 
-### LogTransferData
+### DataOutputter Interface
 
-Represents ERC20 transfer event data:
+Interface for outputting map[string]interface{} data:
 
 ```go
-type LogTransferData struct {
-    To    string `json:"to"`
-    From  string `json:"from"`
-    Topic string `json:"topic"`
-    Value string `json:"value"`
+type DataOutputter interface {
+    OutputData() (map[string]interface{}, error)
 }
 ```
 
-### LogStatus
+### MapDataOutputter
 
-Transaction status constants:
+Simple implementation of DataOutputter for map[string]interface{}:
 
 ```go
-const (
-    LogStatusPending   LogStatus = "pending"
-    LogStatusConfirmed LogStatus = "confirmed"
-    LogStatusFailed    LogStatus = "failed"
-    LogStatusCancelled LogStatus = "cancelled"
-)
+type MapDataOutputter struct {
+    data map[string]interface{}
+}
 ```
 
 ## Available Functions
 
 ### Core Functions
 
-- `CreateERC20TransferLog(hash, txHash, sender, to, value string, nonce int64) (*Log, error)`
-  - Creates a new log with ERC20 transfer data
-
-- `CreateTxLogEvent(log Log, privateKey string) (*NostrEvent, error)`
+- `CreateTxLogEvent(log DataOutputter, privateKey string) (*nostr.Event, error)`
   - Creates a new Nostr event for a transaction log
 
-- `UpdateTxLogEvent(log Log, privateKey string) (*NostrEvent, error)`
+- `UpdateTxLogEvent(logData map[string]interface{}, privateKey string, originalEventID ...string) (*nostr.Event, error)`
   - Creates a Nostr event for updating a transaction log status
 
-- `UpdateLogStatus(log *Log, status LogStatus)`
-  - Updates the status of a log and sets the updated timestamp
+- `UpdateLogStatusEvent(logData map[string]interface{}, newStatus string, privateKey string, originalEventID ...string) (*nostr.Event, error)`
+  - Creates a Nostr event for updating log status with new status and timestamp
 
 ### Utility Functions
 
-- `ParseTxLogEvent(evt *NostrEvent) (*TxLogEvent, error)`
+- `ParseTxLogEvent(evt *nostr.Event) (*TxLogEvent, error)`
   - Parses a Nostr event back into structured data
 
-- `IsERC20Transfer(log *Log) bool`
-  - Checks if the log data represents an ERC20 transfer
-
-- `GetTransferData(log *Log) (*LogTransferData, error)`
+- `GetTransferData(logData map[string]interface{}) (map[string]interface{}, error)`
   - Extracts transfer data from a log
+
+- `NewMapDataOutputter(data map[string]interface{}) *MapDataOutputter`
+  - Creates a new MapDataOutputter instance
 
 ## Nostr Event Structure
 
@@ -158,10 +156,31 @@ The module creates Nostr events with:
 - **Kind**: 30000 (custom kind for transaction logs)
 - **Tags**: Properly formatted tags for indexing and filtering
   - `d`: Log hash (identifier)
-  - `t`: Type tags (tx_log, ethereum, status, update)
-  - `tx_hash`: Transaction hash
-  - `sender`: Sender address
-  - `to`: Recipient address (if available)
+  - `t`: Type tags (tx_log, ethereum, status, update, chain_id)
+  - `r`: Transaction hash as reference
+  - `p`: Address tags for sender and recipient (0x addresses)
+  - `amount`: Value amount for filtering
+  - `timestamp`: Created timestamp for time-based filtering
+  - `e`: Reference to original event (for updates)
+
+### Event Types
+
+```go
+const (
+    EventTypeTxLogCreated = "tx_log_created"
+    EventTypeTxLogUpdated = "tx_log_updated"
+)
+```
+
+## Data Flattening
+
+The module automatically flattens nested data structures into Nostr tags:
+
+- Ethereum addresses (0x...) are tagged with `p`
+- Hash values (like topics) are tagged with their key name
+- Numeric values are converted to strings
+- Nested maps are recursively flattened with prefixed keys
+- Arrays are joined with commas
 
 ## Testing
 
@@ -175,12 +194,11 @@ go test ./pkg/eth -v
 
 See the `example/` directory for a complete working example that demonstrates:
 
-1. Creating ERC20 transfer logs
+1. Creating transaction log data
 2. Generating Nostr events
 3. Updating transaction status
 4. Parsing events back
-5. JSON representation
-6. ERC20 transfer detection
+5. Data outputter interface usage
 
 Run the example with:
 
