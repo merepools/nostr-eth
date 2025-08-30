@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/kevin/nostr-tx/pkg/tx"
+	tx "github.com/citizenwallet/nostr-tx"
 )
 
 func main() {
