@@ -1,11 +1,13 @@
 package eth
 
 // Re-export all functions from the log package
-import log "github.com/citizenwallet/nostr-eth/pkg/eth"
+import (
+	log "github.com/citizenwallet/nostr-eth/pkg/eth"
+	"github.com/nbd-wtf/go-nostr"
+)
 
 // Re-export log package types
 type TxLogEvent = log.TxLogEvent
-type NostrEvent = log.NostrEvent
 type DataOutputter = log.DataOutputter
 type MapDataOutputter = log.MapDataOutputter
 
@@ -16,19 +18,19 @@ const (
 )
 
 // Re-export log package functions
-func CreateTxLogEvent(logData log.DataOutputter, privateKey string) (*log.NostrEvent, error) {
+func CreateTxLogEvent(logData log.DataOutputter, privateKey string) (*nostr.Event, error) {
 	return log.CreateTxLogEvent(logData, privateKey)
 }
 
-func UpdateTxLogEvent(logData map[string]interface{}, privateKey string, originalEventID ...string) (*log.NostrEvent, error) {
+func UpdateTxLogEvent(logData map[string]interface{}, privateKey string, originalEventID ...string) (*nostr.Event, error) {
 	return log.UpdateTxLogEvent(logData, privateKey, originalEventID...)
 }
 
-func ParseTxLogEvent(evt *log.NostrEvent) (*log.TxLogEvent, error) {
+func ParseTxLogEvent(evt *nostr.Event) (*log.TxLogEvent, error) {
 	return log.ParseTxLogEvent(evt)
 }
 
-func UpdateLogStatusEvent(logData map[string]interface{}, newStatus string, privateKey string, originalEventID ...string) (*log.NostrEvent, error) {
+func UpdateLogStatusEvent(logData map[string]interface{}, newStatus string, privateKey string, originalEventID ...string) (*nostr.Event, error) {
 	return log.UpdateLogStatusEvent(logData, newStatus, privateKey, originalEventID...)
 }
 

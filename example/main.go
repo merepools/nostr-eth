@@ -6,6 +6,7 @@ import (
 	"log"
 
 	tx "github.com/citizenwallet/nostr-eth/pkg/eth"
+	"github.com/nbd-wtf/go-nostr"
 )
 
 func main() {
@@ -34,7 +35,7 @@ func main() {
 	}
 
 	genericDataOutputter := tx.NewMapDataOutputter(genericLogData)
-	var genericEvent *tx.NostrEvent
+	var genericEvent *nostr.Event
 	genericEvent, err = tx.CreateTxLogEvent(genericDataOutputter, "your_private_key_here")
 	if err != nil {
 		log.Fatalf("Failed to create generic transaction event: %v", err)
@@ -80,7 +81,7 @@ func main() {
 	}
 
 	customDataOutputter := tx.NewMapDataOutputter(customLogData)
-	var nostrEvent *tx.NostrEvent
+	var nostrEvent *nostr.Event
 	nostrEvent, err = tx.CreateTxLogEvent(customDataOutputter, "your_private_key_here")
 	if err != nil {
 		log.Fatalf("Failed to create Nostr event: %v", err)
@@ -100,7 +101,7 @@ func main() {
 
 	// Example 3: Update log status and create update event
 	fmt.Println("\n3. Updating Log Status:")
-	var updateEvent *tx.NostrEvent
+	var updateEvent *nostr.Event
 	updateEvent, err = tx.UpdateLogStatusEvent(customLogData, "confirmed", "your_private_key_here")
 	if err != nil {
 		log.Fatalf("Failed to create update event: %v", err)
@@ -148,7 +149,7 @@ func main() {
 		},
 	}
 
-	var erc20Event *tx.NostrEvent
+	var erc20Event *nostr.Event
 	erc20Event, err = tx.CreateTxLogEvent(tx.NewMapDataOutputter(erc20Data), "private_key")
 	if err != nil {
 		fmt.Printf("Error creating ERC20 event: %v\n", err)
@@ -174,7 +175,7 @@ func main() {
 		},
 	}
 
-	var nftEvent *tx.NostrEvent
+	var nftEvent *nostr.Event
 	nftEvent, err = tx.CreateTxLogEvent(tx.NewMapDataOutputter(nftData), "private_key")
 	if err != nil {
 		fmt.Printf("Error creating NFT event: %v\n", err)
@@ -207,7 +208,7 @@ func main() {
 		},
 	}
 
-	var complexEvent *tx.NostrEvent
+	var complexEvent *nostr.Event
 	complexEvent, err = tx.CreateTxLogEvent(tx.NewMapDataOutputter(complexData), "private_key")
 	if err != nil {
 		fmt.Printf("Error creating complex event: %v\n", err)

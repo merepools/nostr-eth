@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/nbd-wtf/go-nostr"
 )
 
 // NostrEventType represents the type of Nostr event for transaction logs
@@ -18,17 +20,6 @@ type TxLogEvent struct {
 	LogData   map[string]interface{} `json:"log_data"`
 	EventType string                 `json:"event_type"`
 	Tags      []string               `json:"tags,omitempty"`
-}
-
-// NostrEvent represents a generic Nostr event structure
-type NostrEvent struct {
-	ID        string     `json:"id"`
-	PubKey    string     `json:"pubkey"`
-	CreatedAt int64      `json:"created_at"`
-	Kind      int        `json:"kind"`
-	Tags      [][]string `json:"tags"`
-	Content   string     `json:"content"`
-	Sig       string     `json:"sig"`
 }
 
 // DataOutputter defines an interface for outputting map[string]interface{} data
@@ -52,7 +43,7 @@ func (m *MapDataOutputter) OutputData() (map[string]interface{}, error) {
 }
 
 // CreateTxLogEvent creates a new Nostr event for a transaction log
-func CreateTxLogEvent(log DataOutputter, privateKey string) (*NostrEvent, error) {
+func CreateTxLogEvent(log DataOutputter, privateKey string) (*nostr.Event, error) {
 	logData, err := log.OutputData()
 	if err != nil {
 		return nil, err
@@ -72,11 +63,11 @@ func CreateTxLogEvent(log DataOutputter, privateKey string) (*NostrEvent, error)
 	}
 
 	// Create the Nostr event
-	evt := &NostrEvent{
+	evt := &nostr.Event{
 		PubKey:    "", // Will be derived from private key
-		CreatedAt: time.Now().Unix(),
+		CreatedAt: nostr.Timestamp(time.Now().Unix()),
 		Kind:      30000, // Custom kind for transaction logs
-		Tags:      make([][]string, 0),
+		Tags:      make([]nostr.Tag, 0),
 		Content:   string(content),
 	}
 
@@ -136,7 +127,7 @@ func CreateTxLogEvent(log DataOutputter, privateKey string) (*NostrEvent, error)
 }
 
 // UpdateTxLogEvent creates a Nostr event for updating a transaction log status
-func UpdateTxLogEvent(logData map[string]interface{}, privateKey string, originalEventID ...string) (*NostrEvent, error) {
+func UpdateTxLogEvent(logData map[string]interface{}, privateKey string, originalEventID ...string) (*nostr.Event, error) {
 	// Create the event data
 	eventData := TxLogEvent{
 		LogData:   logData,
@@ -151,11 +142,11 @@ func UpdateTxLogEvent(logData map[string]interface{}, privateKey string, origina
 	}
 
 	// Create the Nostr event
-	evt := &NostrEvent{
+	evt := &nostr.Event{
 		PubKey:    "", // Will be derived from private key
-		CreatedAt: time.Now().Unix(),
+		CreatedAt: nostr.Timestamp(time.Now().Unix()),
 		Kind:      30000, // Custom kind for transaction logs
-		Tags:      make([][]string, 0),
+		Tags:      make([]nostr.Tag, 0),
 		Content:   string(content),
 	}
 
@@ -221,7 +212,7 @@ func UpdateTxLogEvent(logData map[string]interface{}, privateKey string, origina
 }
 
 // ParseTxLogEvent parses a Nostr event back into a TxLogEvent
-func ParseTxLogEvent(evt *NostrEvent) (*TxLogEvent, error) {
+func ParseTxLogEvent(evt *nostr.Event) (*TxLogEvent, error) {
 	var txLogEvent TxLogEvent
 	err := json.Unmarshal([]byte(evt.Content), &txLogEvent)
 	if err != nil {
@@ -231,7 +222,7 @@ func ParseTxLogEvent(evt *NostrEvent) (*TxLogEvent, error) {
 }
 
 // UpdateLogStatusEvent creates a Nostr event for updating log status
-func UpdateLogStatusEvent(logData map[string]interface{}, newStatus string, privateKey string, originalEventID ...string) (*NostrEvent, error) {
+func UpdateLogStatusEvent(logData map[string]interface{}, newStatus string, privateKey string, originalEventID ...string) (*nostr.Event, error) {
 	// Update the status and timestamp
 	updatedLogData := make(map[string]interface{})
 	for k, v := range logData {
@@ -277,8 +268,8 @@ func isEthereumAddress(value string) bool {
 
 // flattenDataToTags flattens the data map into tags, using "p" for address values
 // The data is dynamic and can be any event, but will always contain "topic" which is a hash
-func flattenDataToTags(data map[string]interface{}) [][]string {
-	var tags [][]string
+func flattenDataToTags(data map[string]interface{}) []nostr.Tag {
+	var tags []nostr.Tag
 
 	for key, value := range data {
 		if strValue, ok := value.(string); ok {

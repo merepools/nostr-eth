@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"testing"
 	"time"
+
+	"github.com/nbd-wtf/go-nostr"
 )
 
 func TestCreateTxLogEvent(t *testing.T) {
@@ -206,12 +208,12 @@ func TestParseTxLogEvent(t *testing.T) {
 	}
 
 	// Create Nostr event
-	nostrEvent := &NostrEvent{
+	nostrEvent := &nostr.Event{
 		ID:        "event_id",
 		PubKey:    "pubkey",
-		CreatedAt: time.Now().Unix(),
+		CreatedAt: nostr.Timestamp(time.Now().Unix()),
 		Kind:      30000,
-		Tags:      [][]string{},
+		Tags:      []nostr.Tag{},
 		Content:   string(content),
 		Sig:       "signature",
 	}
