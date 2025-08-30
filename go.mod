@@ -1,3 +1,3 @@
-module github.com/kevin/nostr-tx
+module github.com/citizenwallet/nostr-tx
 
 go 1.24.6
