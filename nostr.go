@@ -1,24 +1,41 @@
-package tx
+package eth
 
-// Re-export all functions from the tx package
-import "github.com/citizenwallet/nostr-tx/pkg/tx"
+// Re-export all functions from the log package
+import log "github.com/citizenwallet/nostr-eth/pkg/eth"
 
-// HelloWorld returns a simple hello world message
-func HelloWorld() string {
-	return tx.HelloWorld()
+// Re-export log package types
+type TxLogEvent = log.TxLogEvent
+type NostrEvent = log.NostrEvent
+type DataOutputter = log.DataOutputter
+type MapDataOutputter = log.MapDataOutputter
+
+// Re-export log package constants
+const (
+	EventTypeTxLogCreated = log.EventTypeTxLogCreated
+	EventTypeTxLogUpdated = log.EventTypeTxLogUpdated
+)
+
+// Re-export log package functions
+func CreateTxLogEvent(logData log.DataOutputter, privateKey string) (*log.NostrEvent, error) {
+	return log.CreateTxLogEvent(logData, privateKey)
 }
 
-// HelloWorldWithName returns a personalized hello message
-func HelloWorldWithName(name string) string {
-	return tx.HelloWorldWithName(name)
+func UpdateTxLogEvent(logData map[string]interface{}, privateKey string, originalEventID ...string) (*log.NostrEvent, error) {
+	return log.UpdateTxLogEvent(logData, privateKey, originalEventID...)
 }
 
-// PrintHelloWorld prints the hello world message to stdout
-func PrintHelloWorld() {
-	tx.PrintHelloWorld()
+func ParseTxLogEvent(evt *log.NostrEvent) (*log.TxLogEvent, error) {
+	return log.ParseTxLogEvent(evt)
 }
 
-// PrintHelloWorldWithName prints a personalized hello message to stdout
-func PrintHelloWorldWithName(name string) {
-	tx.PrintHelloWorldWithName(name)
+func UpdateLogStatusEvent(logData map[string]interface{}, newStatus string, privateKey string, originalEventID ...string) (*log.NostrEvent, error) {
+	return log.UpdateLogStatusEvent(logData, newStatus, privateKey, originalEventID...)
+}
+
+func GetTransferData(logData map[string]interface{}) (map[string]interface{}, error) {
+	return log.GetTransferData(logData)
+}
+
+func NewMapDataOutputter(data map[string]interface{}) *log.MapDataOutputter {
+	return log.NewMapDataOutputter(data)
 }

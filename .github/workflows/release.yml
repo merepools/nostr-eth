@@ -20,7 +20,7 @@ jobs:
           go-version: "1.24"
 
       - name: Run tests
-        run: go test ./pkg/tx
+        run: go test ./pkg/eth
 
       - name: Generate tag
         id: tag
@@ -61,15 +61,23 @@ jobs:
             This is an automated release for version ${{ steps.tag.outputs.new_tag }}.
 
             ### Features
-            - Hello World functionality
-            - Personalized greeting functions
+            - Nostr event creation for Ethereum transaction logs
+            - Transaction log status updates
+            - Event parsing and data extraction
+            - Support for various transaction types (ERC20, NFT, etc.)
 
             ### Usage
             ```go
-            import "github.com/kevin/nostr-tx/pkg/tx"
+            import "github.com/citizenwallet/nostr-eth/pkg/eth"
 
-            message := tx.HelloWorld()
-            personalized := tx.HelloWorldWithName("Alice")
+            // Create a transaction log event
+            logData := map[string]interface{}{
+                "hash": "0x1234567890abcdef...",
+                "status": "pending",
+                // ... other transaction data
+            }
+
+            event, err := tx.CreateTxLogEvent(tx.NewMapDataOutputter(logData), "private_key")
             ```
           draft: false
           prerelease: false
