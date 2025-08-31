@@ -293,34 +293,17 @@ func flattenDataToTags(data map[string]interface{}) []nostr.Tag {
 			// Convert int64 to string
 			tags = append(tags, []string{key, fmt.Sprintf("%d", intValue)})
 		} else if floatValue, ok := value.(float64); ok {
-			// Convert float64 to string
-			tags = append(tags, []string{key, fmt.Sprintf("%f", floatValue)})
+			// Convert float64 to string, but check if it's actually an integer
+			if floatValue == float64(int64(floatValue)) {
+				// It's an integer, format without decimal places
+				tags = append(tags, []string{key, fmt.Sprintf("%d", int64(floatValue))})
+			} else {
+				// It's a real float, format with decimal places
+				tags = append(tags, []string{key, fmt.Sprintf("%f", floatValue)})
+			}
 		} else if boolValue, ok := value.(bool); ok {
 			// Convert bool to string
 			tags = append(tags, []string{key, fmt.Sprintf("%t", boolValue)})
-		} else if mapValue, ok := value.(map[string]interface{}); ok {
-			// Recursively flatten nested maps
-			nestedTags := flattenDataToTags(mapValue)
-			// Prefix nested keys with parent key to avoid conflicts
-			for _, tag := range nestedTags {
-				if len(tag) >= 2 {
-					prefixedKey := fmt.Sprintf("%s_%s", key, tag[0])
-					tags = append(tags, []string{prefixedKey, tag[1]})
-				}
-			}
-		} else if sliceValue, ok := value.([]interface{}); ok {
-			// Handle slices by joining with comma
-			var strValues []string
-			for _, item := range sliceValue {
-				if strItem, ok := item.(string); ok {
-					strValues = append(strValues, strItem)
-				} else {
-					strValues = append(strValues, fmt.Sprintf("%v", item))
-				}
-			}
-			if len(strValues) > 0 {
-				tags = append(tags, []string{key, strings.Join(strValues, ",")})
-			}
 		}
 	}
 
