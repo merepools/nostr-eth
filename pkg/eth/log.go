@@ -2,6 +2,7 @@ package log
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -23,28 +24,33 @@ type TxLogEvent struct {
 }
 
 // DataOutputter defines an interface for outputting map[string]interface{} data
-type DataOutputter interface {
-	OutputData() (map[string]interface{}, error)
+type JSONOutputter interface {
+	ToJSON() []byte
 }
 
-// MapDataOutputter is a simple implementation of DataOutputter for map[string]interface{}
-type MapDataOutputter struct {
-	data map[string]interface{}
+type GenericJSONOutputter json.RawMessage
+
+func NewGenericJSONOutputter(data map[string]interface{}) GenericJSONOutputter {
+	b, err := json.Marshal(data)
+	if err != nil {
+		return nil
+	}
+	return GenericJSONOutputter(b)
 }
 
-// NewMapDataOutputter creates a new MapDataOutputter
-func NewMapDataOutputter(data map[string]interface{}) *MapDataOutputter {
-	return &MapDataOutputter{data: data}
-}
-
-// OutputData returns the underlying data map
-func (m *MapDataOutputter) OutputData() (map[string]interface{}, error) {
-	return m.data, nil
+func (t GenericJSONOutputter) ToJSON() []byte {
+	return []byte(t)
 }
 
 // CreateTxLogEvent creates a new Nostr event for a transaction log
-func CreateTxLogEvent(log DataOutputter, privateKey string) (*nostr.Event, error) {
-	logData, err := log.OutputData()
+func CreateTxLogEvent(log JSONOutputter, privateKey string) (*nostr.Event, error) {
+	b := log.ToJSON()
+	if b == nil {
+		return nil, errors.New("failed to convert log data to JSON")
+	}
+
+	var logData map[string]interface{}
+	err := json.Unmarshal(b, &logData)
 	if err != nil {
 		return nil, err
 	}

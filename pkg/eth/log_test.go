@@ -24,7 +24,7 @@ func TestCreateTxLogEvent(t *testing.T) {
 	}
 
 	// Create a Nostr event
-	dataOutputter := NewMapDataOutputter(logData)
+	dataOutputter := NewJSONOutputter(logData)
 	event, err := CreateTxLogEvent(dataOutputter, "private_key_here")
 	if err != nil {
 		t.Fatalf("Failed to create Nostr event: %v", err)
@@ -234,6 +234,20 @@ func TestParseTxLogEvent(t *testing.T) {
 	}
 }
 
+type TestJSONOutputter json.RawMessage
+
+func NewJSONOutputter(data map[string]interface{}) JSONOutputter {
+	b, err := json.Marshal(data)
+	if err != nil {
+		return nil
+	}
+	return TestJSONOutputter(b)
+}
+
+func (t TestJSONOutputter) ToJSON() []byte {
+	return []byte(t)
+}
+
 func TestDataFlatteningWithAddresses(t *testing.T) {
 	// Create log data with dynamic data containing addresses
 	logData := map[string]interface{}{
@@ -256,7 +270,7 @@ func TestDataFlatteningWithAddresses(t *testing.T) {
 	}
 
 	// Create a Nostr event
-	dataOutputter := NewMapDataOutputter(logData)
+	dataOutputter := NewJSONOutputter(logData)
 	event, err := CreateTxLogEvent(dataOutputter, "private_key_here")
 	if err != nil {
 		t.Fatalf("Failed to create Nostr event: %v", err)
@@ -389,7 +403,7 @@ func TestDynamicDataFlattening(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Create a Nostr event
-			dataOutputter := NewMapDataOutputter(tc.logData)
+			dataOutputter := NewJSONOutputter(tc.logData)
 			event, err := CreateTxLogEvent(dataOutputter, "private_key_here")
 			if err != nil {
 				t.Fatalf("Failed to create Nostr event: %v", err)

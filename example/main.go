@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	tx "github.com/citizenwallet/nostr-eth/pkg/eth"
+	eth "github.com/citizenwallet/nostr-eth"
 	"github.com/nbd-wtf/go-nostr"
 )
 
@@ -34,15 +34,15 @@ func main() {
 		},
 	}
 
-	genericDataOutputter := tx.NewMapDataOutputter(genericLogData)
+	genericDataOutputter := eth.NewGenericJSONOutputter(genericLogData)
 	var genericEvent *nostr.Event
-	genericEvent, err = tx.CreateTxLogEvent(genericDataOutputter, "your_private_key_here")
+	genericEvent, err = eth.CreateTxLogEvent(genericDataOutputter, "your_private_key_here")
 	if err != nil {
 		log.Fatalf("Failed to create generic transaction event: %v", err)
 	}
 
 	// Parse the event to get the log data
-	var txLogEvent tx.TxLogEvent
+	var txLogEvent eth.TxLogEvent
 	err = json.Unmarshal([]byte(genericEvent.Content), &txLogEvent)
 	if err != nil {
 		log.Fatalf("Failed to parse event content: %v", err)
@@ -56,7 +56,7 @@ func main() {
 	fmt.Printf("   Status: %v\n", logData["status"])
 
 	// Get transfer data
-	transferData, err := tx.GetTransferData(logData)
+	transferData, err := eth.GetTransferData(logData)
 	if err != nil {
 		log.Fatalf("Failed to get transfer data: %v", err)
 	}
@@ -80,9 +80,9 @@ func main() {
 		"status":     "pending",
 	}
 
-	customDataOutputter := tx.NewMapDataOutputter(customLogData)
+	customDataOutputter := eth.NewGenericJSONOutputter(customLogData)
 	var nostrEvent *nostr.Event
-	nostrEvent, err = tx.CreateTxLogEvent(customDataOutputter, "your_private_key_here")
+	nostrEvent, err = eth.CreateTxLogEvent(customDataOutputter, "your_private_key_here")
 	if err != nil {
 		log.Fatalf("Failed to create Nostr event: %v", err)
 	}
@@ -102,7 +102,7 @@ func main() {
 	// Example 3: Update log status and create update event
 	fmt.Println("\n3. Updating Log Status:")
 	var updateEvent *nostr.Event
-	updateEvent, err = tx.UpdateLogStatusEvent(customLogData, "confirmed", "your_private_key_here")
+	updateEvent, err = eth.UpdateLogStatusEvent(customLogData, "confirmed", "your_private_key_here")
 	if err != nil {
 		log.Fatalf("Failed to create update event: %v", err)
 	}
@@ -112,8 +112,8 @@ func main() {
 
 	// Example 4: Parse event back
 	fmt.Println("\n4. Parsing Event Back:")
-	var parsedEvent *tx.TxLogEvent
-	parsedEvent, err = tx.ParseTxLogEvent(nostrEvent)
+	var parsedEvent *eth.TxLogEvent
+	parsedEvent, err = eth.ParseTxLogEvent(nostrEvent)
 	if err != nil {
 		log.Fatalf("Failed to parse event: %v", err)
 	}
@@ -150,7 +150,7 @@ func main() {
 	}
 
 	var erc20Event *nostr.Event
-	erc20Event, err = tx.CreateTxLogEvent(tx.NewMapDataOutputter(erc20Data), "private_key")
+	erc20Event, err = eth.CreateTxLogEvent(eth.NewGenericJSONOutputter(erc20Data), "private_key")
 	if err != nil {
 		fmt.Printf("Error creating ERC20 event: %v\n", err)
 	} else {
@@ -176,7 +176,7 @@ func main() {
 	}
 
 	var nftEvent *nostr.Event
-	nftEvent, err = tx.CreateTxLogEvent(tx.NewMapDataOutputter(nftData), "private_key")
+	nftEvent, err = eth.CreateTxLogEvent(eth.NewGenericJSONOutputter(nftData), "private_key")
 	if err != nil {
 		fmt.Printf("Error creating NFT event: %v\n", err)
 	} else {
@@ -209,7 +209,7 @@ func main() {
 	}
 
 	var complexEvent *nostr.Event
-	complexEvent, err = tx.CreateTxLogEvent(tx.NewMapDataOutputter(complexData), "private_key")
+	complexEvent, err = eth.CreateTxLogEvent(eth.NewGenericJSONOutputter(complexData), "private_key")
 	if err != nil {
 		fmt.Printf("Error creating complex event: %v\n", err)
 	} else {

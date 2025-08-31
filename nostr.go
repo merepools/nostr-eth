@@ -8,8 +8,7 @@ import (
 
 // Re-export log package types
 type TxLogEvent = log.TxLogEvent
-type DataOutputter = log.DataOutputter
-type MapDataOutputter = log.MapDataOutputter
+type JSONOutputter = log.JSONOutputter
 
 // Re-export log package constants
 const (
@@ -18,7 +17,7 @@ const (
 )
 
 // Re-export log package functions
-func CreateTxLogEvent(logData log.DataOutputter, privateKey string) (*nostr.Event, error) {
+func CreateTxLogEvent(logData log.JSONOutputter, privateKey string) (*nostr.Event, error) {
 	return log.CreateTxLogEvent(logData, privateKey)
 }
 
@@ -38,6 +37,6 @@ func GetTransferData(logData map[string]interface{}) (map[string]interface{}, er
 	return log.GetTransferData(logData)
 }
 
-func NewMapDataOutputter(data map[string]interface{}) *log.MapDataOutputter {
-	return log.NewMapDataOutputter(data)
+func NewGenericJSONOutputter(data map[string]interface{}) log.GenericJSONOutputter {
+	return log.NewGenericJSONOutputter(data)
 }
