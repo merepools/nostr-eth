@@ -1,4 +1,4 @@
-module github.com/citizenwallet/nostr-eth
+module github.com/citizenapp2/nostr-eth
 
 go 1.24.6
 
