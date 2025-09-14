@@ -14,7 +14,7 @@ This module establishes a foundation for storing blockchain transaction logs in 
 ## Installation
 
 ```bash
-go get github.com/citizenwallet/nostr-eth
+go get github.com/citizenapp2/nostr-eth
 ```
 
 ## Current Implementation: Ethereum Transaction Logs
@@ -39,7 +39,7 @@ package main
 import (
     "fmt"
     "time"
-    "github.com/citizenwallet/nostr-eth/pkg/eth/log"
+    "github.com/citizenapp2/nostr-eth/pkg/eth/log"
 )
 
 func main() {

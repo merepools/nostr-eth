@@ -68,7 +68,7 @@ jobs:
 
             ### Usage
             ```go
-            import "github.com/citizenwallet/nostr-eth/pkg/eth"
+            import "github.com/citizenapp2/nostr-eth/pkg/eth"
 
             // Create a transaction log event
             logData := map[string]interface{}{
