@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	eth "github.com/citizenwallet/nostr-eth"
+	eth "github.com/citizenapp2/nostr-eth"
 	"github.com/nbd-wtf/go-nostr"
 )
 

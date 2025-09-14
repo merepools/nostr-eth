@@ -2,7 +2,7 @@ package eth
 
 // Re-export all functions from the log package
 import (
-	log "github.com/citizenwallet/nostr-eth/pkg/eth"
+	log "github.com/citizenapp2/nostr-eth/pkg/eth"
 	"github.com/nbd-wtf/go-nostr"
 )
 
