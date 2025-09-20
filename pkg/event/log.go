@@ -1,12 +1,11 @@
-package log
+package event
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strings"
-	"time"
 
+	"github.com/citizenapp2/nostr-eth/pkg/neth"
 	"github.com/nbd-wtf/go-nostr"
 )
 
@@ -18,46 +17,16 @@ const (
 
 // TxLogEvent represents a Nostr event for transaction logs
 type TxLogEvent struct {
-	LogData   map[string]interface{} `json:"log_data"`
-	EventType string                 `json:"event_type"`
-	Tags      []string               `json:"tags,omitempty"`
-}
-
-// DataOutputter defines an interface for outputting map[string]interface{} data
-type JSONOutputter interface {
-	ToJSON() []byte
-}
-
-type GenericJSONOutputter json.RawMessage
-
-func NewGenericJSONOutputter(data map[string]interface{}) GenericJSONOutputter {
-	b, err := json.Marshal(data)
-	if err != nil {
-		return nil
-	}
-	return GenericJSONOutputter(b)
-}
-
-func (t GenericJSONOutputter) ToJSON() []byte {
-	return []byte(t)
+	LogData   neth.Log `json:"log_data"`
+	EventType string   `json:"event_type"`
+	Tags      []string `json:"tags,omitempty"`
 }
 
 // CreateTxLogEvent creates a new Nostr event for a transaction log
-func CreateTxLogEvent(log JSONOutputter, privateKey string) (*nostr.Event, error) {
-	b := log.ToJSON()
-	if b == nil {
-		return nil, errors.New("failed to convert log data to JSON")
-	}
-
-	var logData map[string]interface{}
-	err := json.Unmarshal(b, &logData)
-	if err != nil {
-		return nil, err
-	}
-
+func CreateTxLogEvent(log neth.Log) (*nostr.Event, error) {
 	// Create the event data
 	eventData := TxLogEvent{
-		LogData:   logData,
+		LogData:   log,
 		EventType: EventTypeTxLogCreated,
 		Tags:      []string{"tx_log", "ethereum"},
 	}
@@ -71,72 +40,44 @@ func CreateTxLogEvent(log JSONOutputter, privateKey string) (*nostr.Event, error
 	// Create the Nostr event
 	evt := &nostr.Event{
 		PubKey:    "", // Will be derived from private key
-		CreatedAt: nostr.Timestamp(time.Now().Unix()),
+		CreatedAt: nostr.Timestamp(log.CreatedAt.Unix()),
 		Kind:      30000, // Custom kind for transaction logs
 		Tags:      make([]nostr.Tag, 0),
 		Content:   string(content),
 	}
 
 	// Add tags for better indexing and filtering
-	if hash, ok := logData["hash"].(string); ok {
-		evt.Tags = append(evt.Tags, []string{"d", hash}) // Identifier
-	}
+	evt.Tags = append(evt.Tags, []string{"d", log.Hash}) // Identifier
 
 	// Type and category tags
 	evt.Tags = append(evt.Tags, []string{"t", "tx_log"})   // Type
 	evt.Tags = append(evt.Tags, []string{"t", "ethereum"}) // Blockchain
 
 	// Chain-specific tag
-	if chainId, ok := logData["chain_id"].(string); ok {
-		evt.Tags = append(evt.Tags, []string{"t", chainId}) // Chain ID
-	}
-
-	// Status tag
-	if status, ok := logData["status"].(string); ok {
-		evt.Tags = append(evt.Tags, []string{"t", status}) // Status
-	}
+	evt.Tags = append(evt.Tags, []string{"t", log.ChainID}) // Chain ID
 
 	// Reference tags for transaction hash
-	if txHash, ok := logData["tx_hash"].(string); ok {
-		evt.Tags = append(evt.Tags, []string{"r", txHash}) // Transaction hash as reference
-	}
+	evt.Tags = append(evt.Tags, []string{"r", log.TxHash}) // Transaction hash as reference
 
 	// Address tags (using "p" for pubkey-like addresses)
-	if sender, ok := logData["sender"].(string); ok {
-		evt.Tags = append(evt.Tags, []string{"p", sender}) // Sender address
-	}
-
-	if to, ok := logData["to"].(string); ok && to != "" {
-		evt.Tags = append(evt.Tags, []string{"p", to}) // Recipient address
-	}
+	evt.Tags = append(evt.Tags, []string{"p", log.Sender}) // Sender address
+	evt.Tags = append(evt.Tags, []string{"p", log.To})     // Recipient/Contract address
 
 	// Amount/value tag for filtering
-	if value, ok := logData["value"].(string); ok && value != "0" {
-		evt.Tags = append(evt.Tags, []string{"amount", value})
-	}
-
-	// Timestamp for time-based filtering
-	if createdAt, ok := logData["created_at"].(int64); ok {
-		evt.Tags = append(evt.Tags, []string{"timestamp", fmt.Sprintf("%d", createdAt)})
-	}
+	evt.Tags = append(evt.Tags, []string{"amount", log.Value.String()})
 
 	// Flatten data into tags
-	if data, ok := logData["data"].(map[string]interface{}); ok {
-		dataTags := flattenDataToTags(data)
-		evt.Tags = append(evt.Tags, dataTags...)
-	}
-
-	// Note: In a real implementation, you would sign the event here
-	// For now, we'll leave the ID and Sig empty as they require cryptographic operations
+	dataTags := flattenDataToTags(*log.Data)
+	evt.Tags = append(evt.Tags, dataTags...)
 
 	return evt, nil
 }
 
 // UpdateTxLogEvent creates a Nostr event for updating a transaction log status
-func UpdateTxLogEvent(logData map[string]interface{}, privateKey string, originalEventID ...string) (*nostr.Event, error) {
+func UpdateTxLogEvent(log neth.Log, originalEventID ...string) (*nostr.Event, error) {
 	// Create the event data
 	eventData := TxLogEvent{
-		LogData:   logData,
+		LogData:   log,
 		EventType: EventTypeTxLogUpdated,
 		Tags:      []string{"tx_log", "ethereum", "update"},
 	}
@@ -150,7 +91,7 @@ func UpdateTxLogEvent(logData map[string]interface{}, privateKey string, origina
 	// Create the Nostr event
 	evt := &nostr.Event{
 		PubKey:    "", // Will be derived from private key
-		CreatedAt: nostr.Timestamp(time.Now().Unix()),
+		CreatedAt: nostr.Timestamp(log.CreatedAt.Unix()),
 		Kind:      30000, // Custom kind for transaction logs
 		Tags:      make([]nostr.Tag, 0),
 		Content:   string(content),
@@ -162,9 +103,7 @@ func UpdateTxLogEvent(logData map[string]interface{}, privateKey string, origina
 	}
 
 	// Add tags for better indexing and filtering
-	if hash, ok := logData["hash"].(string); ok {
-		evt.Tags = append(evt.Tags, []string{"d", hash}) // Identifier
-	}
+	evt.Tags = append(evt.Tags, []string{"d", log.Hash}) // Identifier
 
 	// Type and category tags
 	evt.Tags = append(evt.Tags, []string{"t", "tx_log"})   // Type
@@ -172,47 +111,21 @@ func UpdateTxLogEvent(logData map[string]interface{}, privateKey string, origina
 	evt.Tags = append(evt.Tags, []string{"t", "update"})   // Update marker
 
 	// Chain-specific tag
-	if chainId, ok := logData["chain_id"].(string); ok {
-		evt.Tags = append(evt.Tags, []string{"t", chainId}) // Chain ID
-	}
-
-	// Status tag
-	if status, ok := logData["status"].(string); ok {
-		evt.Tags = append(evt.Tags, []string{"t", status}) // Status
-	}
+	evt.Tags = append(evt.Tags, []string{"t", log.ChainID}) // Chain ID
 
 	// Reference tags for transaction hash
-	if txHash, ok := logData["tx_hash"].(string); ok {
-		evt.Tags = append(evt.Tags, []string{"r", txHash}) // Transaction hash as reference
-	}
+	evt.Tags = append(evt.Tags, []string{"r", log.TxHash}) // Transaction hash as reference
 
 	// Address tags (using "p" for pubkey-like addresses)
-	if sender, ok := logData["sender"].(string); ok {
-		evt.Tags = append(evt.Tags, []string{"p", sender}) // Sender address
-	}
-
-	if to, ok := logData["to"].(string); ok && to != "" {
-		evt.Tags = append(evt.Tags, []string{"p", to}) // Recipient address
-	}
+	evt.Tags = append(evt.Tags, []string{"p", log.Sender}) // Sender address
+	evt.Tags = append(evt.Tags, []string{"p", log.To})     // Recipient/Contract address
 
 	// Amount/value tag for filtering
-	if value, ok := logData["value"].(string); ok && value != "0" {
-		evt.Tags = append(evt.Tags, []string{"amount", value})
-	}
-
-	// Timestamp for time-based filtering
-	if createdAt, ok := logData["created_at"].(int64); ok {
-		evt.Tags = append(evt.Tags, []string{"timestamp", fmt.Sprintf("%d", createdAt)})
-	}
+	evt.Tags = append(evt.Tags, []string{"amount", log.Value.String()})
 
 	// Flatten data into tags
-	if data, ok := logData["data"].(map[string]interface{}); ok {
-		dataTags := flattenDataToTags(data)
-		evt.Tags = append(evt.Tags, dataTags...)
-	}
-
-	// Note: In a real implementation, you would sign the event here
-	// For now, we'll leave the ID and Sig empty as they require cryptographic operations
+	dataTags := flattenDataToTags(*log.Data)
+	evt.Tags = append(evt.Tags, dataTags...)
 
 	return evt, nil
 }
@@ -225,29 +138,6 @@ func ParseTxLogEvent(evt *nostr.Event) (*TxLogEvent, error) {
 		return nil, err
 	}
 	return &txLogEvent, nil
-}
-
-// UpdateLogStatusEvent creates a Nostr event for updating log status
-func UpdateLogStatusEvent(logData map[string]interface{}, newStatus string, privateKey string, originalEventID ...string) (*nostr.Event, error) {
-	// Update the status and timestamp
-	updatedLogData := make(map[string]interface{})
-	for k, v := range logData {
-		updatedLogData[k] = v
-	}
-	updatedLogData["status"] = newStatus
-	updatedLogData["updated_at"] = time.Now().Unix()
-
-	return UpdateTxLogEvent(updatedLogData, privateKey, originalEventID...)
-}
-
-// GetTransferData extracts transfer data from a log
-func GetTransferData(logData map[string]interface{}) (map[string]interface{}, error) {
-	data, ok := logData["data"].(map[string]interface{})
-	if !ok {
-		return nil, nil
-	}
-
-	return data, nil
 }
 
 // isEthereumAddress checks if a string looks like an Ethereum address
@@ -274,8 +164,14 @@ func isEthereumAddress(value string) bool {
 
 // flattenDataToTags flattens the data map into tags, using "p" for address values
 // The data is dynamic and can be any event, but will always contain "topic" which is a hash
-func flattenDataToTags(data map[string]interface{}) []nostr.Tag {
+func flattenDataToTags(b []byte) []nostr.Tag {
 	var tags []nostr.Tag
+
+	var data map[string]interface{}
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return tags
+	}
 
 	for key, value := range data {
 		if strValue, ok := value.(string); ok {
