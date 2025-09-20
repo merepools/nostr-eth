@@ -7,7 +7,7 @@ import (
 	"math/big"
 	"time"
 
-	nostreth "github.com/merepools/nostr-eth"
+	nostreth "github.com/comunifi/nostr-eth"
 	"github.com/nbd-wtf/go-nostr"
 )
 

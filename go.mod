@@ -1,4 +1,4 @@
-module github.com/merepools/nostr-eth
+module github.com/comunifi/nostr-eth
 
 go 1.24.6
 

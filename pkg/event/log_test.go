@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/merepools/nostr-eth/pkg/neth"
+	"github.com/comunifi/nostr-eth/pkg/neth"
 	"github.com/nbd-wtf/go-nostr"
 )
 
