@@ -24,7 +24,7 @@ jobs:
           go-version: "1.24"
 
       - name: Run tests
-        run: go test ./pkg/eth
+        run: go test ./pkg/event
 
       - name: Generate and push tag
         run: |
