@@ -12,6 +12,8 @@ import (
 // NostrEventType represents the type of Nostr event for user operations
 const (
 	EventTypeUserOpRequested EventTypeUserOp = "user_op_requested"
+	EventTypeUserOpSigned    EventTypeUserOp = "user_op_signed"
+	EventTypeUserOpSubmitted EventTypeUserOp = "user_op_submitted"
 	EventTypeUserOpExecuted  EventTypeUserOp = "user_op_executed"
 	EventTypeUserOpConfirmed EventTypeUserOp = "user_op_confirmed"
 	EventTypeUserOpExpired   EventTypeUserOp = "user_op_expired"

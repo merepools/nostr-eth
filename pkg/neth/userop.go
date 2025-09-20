@@ -114,9 +114,13 @@ func (u *UserOp) Copy() UserOp {
 }
 
 func (u *UserOp) GetHash(chainID *big.Int) string {
-	// ABI encode the UserOp fields (matching the Dart implementation)
-	// First, encode the individual fields
-	packed := make([]byte, 0, 320) // Pre-allocate for efficiency
+	// ABI encode only chainID, sender, and nonce
+	packed := make([]byte, 0, 96) // Pre-allocate for 3 * 32 bytes
+
+	// Encode chainID (uint256 - 32 bytes)
+	chainIDPadded := make([]byte, 32)
+	chainID.FillBytes(chainIDPadded)
+	packed = append(packed, chainIDPadded...)
 
 	// Encode sender (address - 32 bytes)
 	senderPadded := make([]byte, 32)
@@ -127,43 +131,6 @@ func (u *UserOp) GetHash(chainID *big.Int) string {
 	noncePadded := make([]byte, 32)
 	u.Nonce.FillBytes(noncePadded)
 	packed = append(packed, noncePadded...)
-
-	// Encode keccak256(initCode) (bytes32 - 32 bytes)
-	initCodeHash := crypto.Keccak256(u.InitCode)
-	packed = append(packed, initCodeHash...)
-
-	// Encode keccak256(callData) (bytes32 - 32 bytes)
-	callDataHash := crypto.Keccak256(u.CallData)
-	packed = append(packed, callDataHash...)
-
-	// Encode callGasLimit (uint256 - 32 bytes)
-	callGasLimitPadded := make([]byte, 32)
-	u.CallGasLimit.FillBytes(callGasLimitPadded)
-	packed = append(packed, callGasLimitPadded...)
-
-	// Encode verificationGasLimit (uint256 - 32 bytes)
-	verificationGasLimitPadded := make([]byte, 32)
-	u.VerificationGasLimit.FillBytes(verificationGasLimitPadded)
-	packed = append(packed, verificationGasLimitPadded...)
-
-	// Encode preVerificationGas (uint256 - 32 bytes)
-	preVerificationGasPadded := make([]byte, 32)
-	u.PreVerificationGas.FillBytes(preVerificationGasPadded)
-	packed = append(packed, preVerificationGasPadded...)
-
-	// Encode maxFeePerGas (uint256 - 32 bytes)
-	maxFeePerGasPadded := make([]byte, 32)
-	u.MaxFeePerGas.FillBytes(maxFeePerGasPadded)
-	packed = append(packed, maxFeePerGasPadded...)
-
-	// Encode maxPriorityFeePerGas (uint256 - 32 bytes)
-	maxPriorityFeePerGasPadded := make([]byte, 32)
-	u.MaxPriorityFeePerGas.FillBytes(maxPriorityFeePerGasPadded)
-	packed = append(packed, maxPriorityFeePerGasPadded...)
-
-	// Encode keccak256(paymasterAndData) (bytes32 - 32 bytes)
-	paymasterAndDataHash := crypto.Keccak256(u.PaymasterAndData)
-	packed = append(packed, paymasterAndDataHash...)
 
 	// Return the keccak256 hash of the packed data
 	return crypto.Keccak256Hash(packed).Hex()
