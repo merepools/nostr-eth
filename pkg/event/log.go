@@ -78,7 +78,7 @@ func CreateTxLogEvent(log neth.Log) (*nostr.Event, error) {
 }
 
 // UpdateTxLogEvent creates a Nostr event for updating a transaction log status
-func UpdateTxLogEvent(log neth.Log, originalEventID ...string) (*nostr.Event, error) {
+func UpdateTxLogEvent(log neth.Log, event *nostr.Event) (*nostr.Event, error) {
 	// Create the event data
 	eventData := TxLogEvent{
 		LogData:   log,
@@ -102,8 +102,8 @@ func UpdateTxLogEvent(log neth.Log, originalEventID ...string) (*nostr.Event, er
 	}
 
 	// Add reference to original event if provided
-	if len(originalEventID) > 0 && originalEventID[0] != "" {
-		evt.Tags = append(evt.Tags, []string{"e", originalEventID[0], "reply"}) // Reference to original event
+	if event != nil {
+		evt.Tags = append(evt.Tags, []string{"e", event.ID, "reply"}) // Reference to original event
 	}
 
 	// Add tags for better indexing and filtering

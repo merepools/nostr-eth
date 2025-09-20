@@ -6,6 +6,7 @@ import (
 
 	"github.com/comunifi/nostr-eth/pkg/event"
 	"github.com/comunifi/nostr-eth/pkg/neth"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/nbd-wtf/go-nostr"
 )
 
@@ -31,8 +32,8 @@ func CreateTxLogEvent(log neth.Log) (*nostr.Event, error) {
 	return event.CreateTxLogEvent(log)
 }
 
-func UpdateTxLogEvent(log neth.Log, originalEventID ...string) (*nostr.Event, error) {
-	return event.UpdateTxLogEvent(log, originalEventID...)
+func UpdateTxLogEvent(log neth.Log, ev *nostr.Event) (*nostr.Event, error) {
+	return event.UpdateTxLogEvent(log, ev)
 }
 
 func ParseTxLogEvent(evt *nostr.Event) (*event.TxLogEvent, error) {
@@ -43,12 +44,12 @@ func GetEventData(log neth.Log) (map[string]interface{}, error) {
 	return log.GetEventData()
 }
 
-func RequestUserOpEvent(chainID *big.Int, userOp neth.UserOp) (*nostr.Event, error) {
-	return event.RequestUserOpEvent(chainID, userOp)
+func RequestUserOpEvent(chainID *big.Int, paymaster *common.Address, userOp neth.UserOp) (*nostr.Event, error) {
+	return event.RequestUserOpEvent(chainID, paymaster, userOp)
 }
 
-func UpdateUserOpEvent(chainID *big.Int, userOp neth.UserOp, eventType event.EventTypeUserOp, originalEventID ...string) (*nostr.Event, error) {
-	return event.UpdateUserOpEvent(chainID, userOp, eventType, originalEventID...)
+func UpdateUserOpEvent(chainID *big.Int, userOp neth.UserOp, eventType event.EventTypeUserOp, ev *nostr.Event) (*nostr.Event, error) {
+	return event.UpdateUserOpEvent(chainID, userOp, eventType, ev)
 }
 
 func ParseUserOpEvent(evt *nostr.Event) (*event.UserOpEvent, error) {

@@ -2,10 +2,10 @@ package event
 
 import (
 	"encoding/json"
-	"fmt"
 	"math/big"
 
 	"github.com/comunifi/nostr-eth/pkg/neth"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/nbd-wtf/go-nostr"
 )
 
@@ -25,15 +25,17 @@ type EventTypeUserOp string
 // UserOpEvent represents a Nostr event for user operations
 type UserOpEvent struct {
 	UserOpData neth.UserOp     `json:"user_op_data"`
+	Paymaster  *common.Address `json:"paymaster,omitempty"`
 	EventType  EventTypeUserOp `json:"event_type"`
 	Tags       []string        `json:"tags,omitempty"`
 }
 
 // CreateUserOpEvent creates a new Nostr event for a user operation
-func RequestUserOpEvent(chainID *big.Int, userOp neth.UserOp) (*nostr.Event, error) {
+func RequestUserOpEvent(chainID *big.Int, paymaster *common.Address, userOp neth.UserOp) (*nostr.Event, error) {
 	// Create the event data
 	eventData := UserOpEvent{
 		UserOpData: userOp,
+		Paymaster:  paymaster,
 		EventType:  EventTypeUserOpRequested,
 		Tags:       []string{"user_op", "user_op_0_0_6", "ethereum", "account_abstraction"},
 	}
@@ -65,40 +67,32 @@ func RequestUserOpEvent(chainID *big.Int, userOp neth.UserOp) (*nostr.Event, err
 	// Chain-specific tag
 	evt.Tags = append(evt.Tags, []string{"t", chainID.String()}) // Chain ID
 
+	// Paymaster tag if present
+	if paymaster != nil {
+		evt.Tags = append(evt.Tags, []string{"paymaster", paymaster.Hex()})
+	}
+
 	// Sender address tag
 	evt.Tags = append(evt.Tags, []string{"p", userOp.Sender.String()}) // Sender address
 
 	// Nonce tag for ordering
 	evt.Tags = append(evt.Tags, []string{"nonce", userOp.Nonce.String()})
 
-	// Gas-related tags
-	evt.Tags = append(evt.Tags, []string{"call_gas", userOp.CallGasLimit.String()})
-	evt.Tags = append(evt.Tags, []string{"verification_gas", userOp.VerificationGasLimit.String()})
-	evt.Tags = append(evt.Tags, []string{"pre_verification_gas", userOp.PreVerificationGas.String()})
-	evt.Tags = append(evt.Tags, []string{"max_fee_per_gas", userOp.MaxFeePerGas.String()})
-	evt.Tags = append(evt.Tags, []string{"max_priority_fee", userOp.MaxPriorityFeePerGas.String()})
-
-	// Function signature detection and tagging
-	if len(userOp.CallData) >= 4 {
-		funcSig := userOp.CallData[:4]
-		if isKnownFunctionSignature(funcSig) {
-			evt.Tags = append(evt.Tags, []string{"func_sig", fmt.Sprintf("0x%x", funcSig)})
-		}
-	}
-
-	// Paymaster tag if present
-	if len(userOp.PaymasterAndData) > 0 {
-		evt.Tags = append(evt.Tags, []string{"paymaster", "true"})
-	}
-
 	return evt, nil
 }
 
 // UpdateUserOpEvent creates a Nostr event for updating a user operation status
-func UpdateUserOpEvent(chainID *big.Int, userOp neth.UserOp, eventType EventTypeUserOp, originalEventID ...string) (*nostr.Event, error) {
+func UpdateUserOpEvent(chainID *big.Int, userOp neth.UserOp, eventType EventTypeUserOp, event *nostr.Event) (*nostr.Event, error) {
+
+	userOpEvent, err := ParseUserOpEvent(event)
+	if err != nil {
+		return nil, err
+	}
+
 	// Create the event data
 	eventData := UserOpEvent{
 		UserOpData: userOp,
+		Paymaster:  userOpEvent.Paymaster,
 		EventType:  eventType,
 		Tags:       []string{"user_op", "user_op_0_0_6", "ethereum", "account_abstraction", "update"},
 	}
@@ -118,11 +112,6 @@ func UpdateUserOpEvent(chainID *big.Int, userOp neth.UserOp, eventType EventType
 		Content:   string(content),
 	}
 
-	// Add reference to original event if provided
-	if len(originalEventID) > 0 && originalEventID[0] != "" {
-		evt.Tags = append(evt.Tags, []string{"e", originalEventID[0], "reply"}) // Reference to original event
-	}
-
 	// Add tags for better indexing and filtering
 	evt.Tags = append(evt.Tags, []string{"d", userOp.GetHash(chainID)}) // Identifier using sender address
 
@@ -131,36 +120,20 @@ func UpdateUserOpEvent(chainID *big.Int, userOp neth.UserOp, eventType EventType
 	evt.Tags = append(evt.Tags, []string{"t", "user_op_0_0_6"})       // Version
 	evt.Tags = append(evt.Tags, []string{"t", "ethereum"})            // Blockchain
 	evt.Tags = append(evt.Tags, []string{"t", "account_abstraction"}) // AA specific
-	evt.Tags = append(evt.Tags, []string{"t", "update"})              // Update marker
 
 	// Chain-specific tag
 	evt.Tags = append(evt.Tags, []string{"t", chainID.String()}) // Chain ID
 
+	// Paymaster tag if present
+	if userOpEvent.Paymaster != nil {
+		evt.Tags = append(evt.Tags, []string{"paymaster", userOpEvent.Paymaster.Hex()})
+	}
+
 	// Sender address tag
-	evt.Tags = append(evt.Tags, []string{"p", userOp.Sender.Hex()}) // Sender address
+	evt.Tags = append(evt.Tags, []string{"p", userOp.Sender.String()}) // Sender address
 
 	// Nonce tag for ordering
 	evt.Tags = append(evt.Tags, []string{"nonce", userOp.Nonce.String()})
-
-	// Gas-related tags
-	evt.Tags = append(evt.Tags, []string{"call_gas", userOp.CallGasLimit.String()})
-	evt.Tags = append(evt.Tags, []string{"verification_gas", userOp.VerificationGasLimit.String()})
-	evt.Tags = append(evt.Tags, []string{"pre_verification_gas", userOp.PreVerificationGas.String()})
-	evt.Tags = append(evt.Tags, []string{"max_fee_per_gas", userOp.MaxFeePerGas.String()})
-	evt.Tags = append(evt.Tags, []string{"max_priority_fee", userOp.MaxPriorityFeePerGas.String()})
-
-	// Function signature detection and tagging
-	if len(userOp.CallData) >= 4 {
-		funcSig := userOp.CallData[:4]
-		if isKnownFunctionSignature(funcSig) {
-			evt.Tags = append(evt.Tags, []string{"func_sig", fmt.Sprintf("0x%x", funcSig)})
-		}
-	}
-
-	// Paymaster tag if present
-	if len(userOp.PaymasterAndData) > 0 {
-		evt.Tags = append(evt.Tags, []string{"paymaster", "true"})
-	}
 
 	return evt, nil
 }
