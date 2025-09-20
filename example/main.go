@@ -107,7 +107,7 @@ func main() {
 	// Example 3: Update log status and create update event
 	fmt.Println("\n3. Updating Log Status:")
 	var updateEvent *nostr.Event
-	updateEvent, err = nostreth.UpdateTxLogEvent(customLogData, "event_id")
+	updateEvent, err = nostreth.UpdateTxLogEvent(customLogData, &nostr.Event{ID: "event_id"})
 	if err != nil {
 		log.Fatalf("Failed to create update event: %v", err)
 	}

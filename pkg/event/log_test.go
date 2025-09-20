@@ -77,7 +77,7 @@ func TestUpdateTxLogEventWithReference(t *testing.T) {
 	originalEventID := "original_event_id_456"
 
 	// Create update event with reference
-	event, err := UpdateTxLogEvent(logData, originalEventID)
+	event, err := UpdateTxLogEvent(logData, &nostr.Event{ID: originalEventID})
 	if err != nil {
 		t.Fatalf("Failed to create update event: %v", err)
 	}
