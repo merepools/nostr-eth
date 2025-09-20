@@ -11,15 +11,17 @@ import (
 
 // NostrEventType represents the type of Nostr event for transaction logs
 const (
-	EventTypeTxLogCreated = "tx_log_created"
-	EventTypeTxLogUpdated = "tx_log_updated"
+	EventTypeTxLogCreated EventTypeTxLog = "tx_log_created"
+	EventTypeTxLogUpdated EventTypeTxLog = "tx_log_updated"
 )
+
+type EventTypeTxLog string
 
 // TxLogEvent represents a Nostr event for transaction logs
 type TxLogEvent struct {
-	LogData   neth.Log `json:"log_data"`
-	EventType string   `json:"event_type"`
-	Tags      []string `json:"tags,omitempty"`
+	LogData   neth.Log       `json:"log_data"`
+	EventType EventTypeTxLog `json:"event_type"`
+	Tags      []string       `json:"tags,omitempty"`
 }
 
 // CreateTxLogEvent creates a new Nostr event for a transaction log
