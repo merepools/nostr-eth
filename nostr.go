@@ -2,8 +2,8 @@ package nostreth
 
 // Re-export all functions from the log package
 import (
-	"github.com/citizenapp2/nostr-eth/pkg/event"
-	"github.com/citizenapp2/nostr-eth/pkg/neth"
+	"github.com/merepools/nostr-eth/pkg/event"
+	"github.com/merepools/nostr-eth/pkg/neth"
 	"github.com/nbd-wtf/go-nostr"
 )
 

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/citizenapp2/nostr-eth/pkg/neth"
+	"github.com/merepools/nostr-eth/pkg/neth"
 	"github.com/nbd-wtf/go-nostr"
 )
 

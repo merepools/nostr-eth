@@ -1,4 +1,4 @@
-module github.com/citizenapp2/nostr-eth
+module github.com/merepools/nostr-eth
 
 go 1.24.6
 
