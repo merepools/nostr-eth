@@ -11,6 +11,8 @@ import (
 
 // NostrEventType represents the type of Nostr event for transaction logs
 const (
+	KindTxLog = 30000
+
 	EventTypeTxLogCreated EventTypeTxLog = "tx_log_created"
 	EventTypeTxLogUpdated EventTypeTxLog = "tx_log_updated"
 )
@@ -43,7 +45,7 @@ func CreateTxLogEvent(log neth.Log) (*nostr.Event, error) {
 	evt := &nostr.Event{
 		PubKey:    "", // Will be derived from private key
 		CreatedAt: nostr.Timestamp(log.CreatedAt.Unix()),
-		Kind:      30000, // Custom kind for transaction logs
+		Kind:      KindTxLog, // Custom kind for transaction logs
 		Tags:      make([]nostr.Tag, 0),
 		Content:   string(content),
 	}
@@ -96,7 +98,7 @@ func UpdateTxLogEvent(log neth.Log, event *nostr.Event) (*nostr.Event, error) {
 	evt := &nostr.Event{
 		PubKey:    "", // Will be derived from private key
 		CreatedAt: nostr.Timestamp(log.CreatedAt.Unix()),
-		Kind:      30000, // Custom kind for transaction logs
+		Kind:      KindTxLog, // Custom kind for transaction logs
 		Tags:      make([]nostr.Tag, 0),
 		Content:   string(content),
 	}

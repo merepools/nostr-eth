@@ -69,7 +69,7 @@ func CreateMessageEvent(content, chainID, txHash, group, author string) (*nostr.
 	evt := &nostr.Event{
 		PubKey:    "", // Will be derived from private key
 		CreatedAt: nostr.Timestamp(messageData.CreatedAt.Unix()),
-		Kind:      30001, // Custom kind for messages (different from tx logs)
+		Kind:      1, // Standard kind for text messages
 		Tags:      make([]nostr.Tag, 0),
 		Content:   string(contentJSON),
 	}
@@ -118,7 +118,7 @@ func UpdateMessageEvent(messageData MessageData, event *nostr.Event) (*nostr.Eve
 	evt := &nostr.Event{
 		PubKey:    "", // Will be derived from private key
 		CreatedAt: nostr.Timestamp(messageData.UpdatedAt.Unix()),
-		Kind:      30001, // Custom kind for messages
+		Kind:      1, // Standard kind for text messages
 		Tags:      make([]nostr.Tag, 0),
 		Content:   string(contentJSON),
 	}
@@ -200,7 +200,7 @@ func GetTxHashFromEvent(evt *nostr.Event) (string, error) {
 
 // IsMessageEvent checks if a Nostr event is a message event
 func IsMessageEvent(evt *nostr.Event) bool {
-	return evt.Kind == 30001
+	return evt.Kind == 1
 }
 
 // FilterEventsByGroup filters a list of events by group alias

@@ -263,16 +263,19 @@ func main() {
 	admins := []string{"admin1@example.com", "admin2@example.com"}
 	moderators := []string{"mod1@example.com", "mod2@example.com"}
 
-	metadataEvent, err := nostreth.CreateGroupMetadataEvent(
-		groupID,
-		"Example Group",
-		"This is an example group for demonstrating NIP-29",
-		"https://example.com/group-picture.jpg",
-		admins,
-		moderators,
-		true,  // private
-		false, // not closed
-	)
+	metadata := nostreth.GroupMetadata{
+		Name:       "Example Group",
+		About:      "This is an example group for demonstrating NIP-29",
+		Picture:    "https://example.com/group-picture.jpg",
+		Admins:     admins,
+		Moderators: moderators,
+		Private:    true,
+		Closed:     false,
+		CreatedAt:  time.Now().Unix(),
+		UpdatedAt:  time.Now().Unix(),
+	}
+
+	metadataEvent, err := nostreth.CreateGroupMetadataEvent(groupID, metadata)
 	if err != nil {
 		log.Fatalf("Failed to create group metadata event: %v", err)
 	}
@@ -287,121 +290,129 @@ func main() {
 	fmt.Printf("   - Content: %s\n", metadataEvent.Content)
 	fmt.Printf("   - Tags: %v\n\n", metadataEvent.Tags)
 
-	// Create Group Message Event (kind 39001)
-	fmt.Println("2. Creating Group Message Event...")
-	mentions := []string{"user1@example.com", "user2@example.com"}
-
-	messageEvent, err := nostreth.CreateGroupMessageEvent(
-		groupID,
-		"Hello everyone! This is a test message in our group.",
-		"", // not a reply
-		mentions,
-	)
+	// Create Group Name Event (kind 39001)
+	fmt.Println("2. Creating Group Name Event...")
+	nameEvent, err := nostreth.CreateGroupNameEvent(groupID, "Updated Group Name")
 	if err != nil {
-		log.Fatalf("Failed to create group message event: %v", err)
+		log.Fatalf("Failed to create group name event: %v", err)
 	}
 
-	messageEvent.PubKey = "dummy-pubkey-for-demo"
-	messageEvent.ID = "message-event-id"
+	nameEvent.PubKey = "dummy-pubkey-for-demo"
+	nameEvent.ID = "name-event-id"
 
-	fmt.Printf("   Group Message Event:\n")
-	fmt.Printf("   - Kind: %d\n", messageEvent.Kind)
+	fmt.Printf("   Group Name Event:\n")
+	fmt.Printf("   - Kind: %d\n", nameEvent.Kind)
 	fmt.Printf("   - Group ID: %s\n", groupID)
-	fmt.Printf("   - Content: %s\n", messageEvent.Content)
-	fmt.Printf("   - Tags: %v\n\n", messageEvent.Tags)
+	fmt.Printf("   - Content: %s\n", nameEvent.Content)
+	fmt.Printf("   - Tags: %v\n\n", nameEvent.Tags)
 
-	// Create Group Join Event (kind 39002)
-	fmt.Println("3. Creating Group Join Event...")
-	joinEvent, err := nostreth.CreateGroupJoinEvent(
-		groupID,
-		"newuser@example.com",
-		"member",
-	)
+	// Create Group About Event (kind 39002)
+	fmt.Println("3. Creating Group About Event...")
+	aboutEvent, err := nostreth.CreateGroupAboutEvent(groupID, "This is an updated description for our group.")
 	if err != nil {
-		log.Fatalf("Failed to create group join event: %v", err)
+		log.Fatalf("Failed to create group about event: %v", err)
 	}
 
-	joinEvent.PubKey = "dummy-pubkey-for-demo"
-	joinEvent.ID = "join-event-id"
+	aboutEvent.PubKey = "dummy-pubkey-for-demo"
+	aboutEvent.ID = "about-event-id"
 
-	fmt.Printf("   Group Join Event:\n")
-	fmt.Printf("   - Kind: %d\n", joinEvent.Kind)
+	fmt.Printf("   Group About Event:\n")
+	fmt.Printf("   - Kind: %d\n", aboutEvent.Kind)
 	fmt.Printf("   - Group ID: %s\n", groupID)
-	fmt.Printf("   - Content: %s\n", joinEvent.Content)
-	fmt.Printf("   - Tags: %v\n\n", joinEvent.Tags)
+	fmt.Printf("   - Content: %s\n", aboutEvent.Content)
+	fmt.Printf("   - Tags: %v\n\n", aboutEvent.Tags)
 
-	// Create Group Leave Event (kind 39003)
-	fmt.Println("4. Creating Group Leave Event...")
-	leaveEvent, err := nostreth.CreateGroupLeaveEvent(
-		groupID,
-		"leavinguser@example.com",
-		"Personal reasons",
-	)
+	// Create Group Picture Event (kind 39003)
+	fmt.Println("4. Creating Group Picture Event...")
+	pictureEvent, err := nostreth.CreateGroupPictureEvent(groupID, "https://example.com/new-group-picture.jpg")
 	if err != nil {
-		log.Fatalf("Failed to create group leave event: %v", err)
+		log.Fatalf("Failed to create group picture event: %v", err)
 	}
 
-	leaveEvent.PubKey = "dummy-pubkey-for-demo"
-	leaveEvent.ID = "leave-event-id"
+	pictureEvent.PubKey = "dummy-pubkey-for-demo"
+	pictureEvent.ID = "picture-event-id"
 
-	fmt.Printf("   Group Leave Event:\n")
-	fmt.Printf("   - Kind: %d\n", leaveEvent.Kind)
+	fmt.Printf("   Group Picture Event:\n")
+	fmt.Printf("   - Kind: %d\n", pictureEvent.Kind)
 	fmt.Printf("   - Group ID: %s\n", groupID)
-	fmt.Printf("   - Content: %s\n", leaveEvent.Content)
-	fmt.Printf("   - Tags: %v\n\n", leaveEvent.Tags)
+	fmt.Printf("   - Content: %s\n", pictureEvent.Content)
+	fmt.Printf("   - Tags: %v\n\n", pictureEvent.Tags)
 
-	// Create Group Moderation Event (kind 39004)
-	fmt.Println("5. Creating Group Moderation Event...")
-	moderationEvent, err := nostreth.CreateGroupModerationEvent(
-		groupID,
-		"ban",
-		"spammer@example.com",
-		"Spamming the group",
-		86400, // 24 hours in seconds
-	)
+	// Create Group Admins Event (kind 39004)
+	fmt.Println("5. Creating Group Admins Event...")
+	newAdmins := []string{"admin1@example.com", "admin2@example.com", "admin3@example.com"}
+	adminsEvent, err := nostreth.CreateGroupAdminsEvent(groupID, newAdmins)
 	if err != nil {
-		log.Fatalf("Failed to create group moderation event: %v", err)
+		log.Fatalf("Failed to create group admins event: %v", err)
 	}
 
-	moderationEvent.PubKey = "dummy-pubkey-for-demo"
-	moderationEvent.ID = "moderation-event-id"
+	adminsEvent.PubKey = "dummy-pubkey-for-demo"
+	adminsEvent.ID = "admins-event-id"
 
-	fmt.Printf("   Group Moderation Event:\n")
-	fmt.Printf("   - Kind: %d\n", moderationEvent.Kind)
+	fmt.Printf("   Group Admins Event:\n")
+	fmt.Printf("   - Kind: %d\n", adminsEvent.Kind)
 	fmt.Printf("   - Group ID: %s\n", groupID)
-	fmt.Printf("   - Content: %s\n", moderationEvent.Content)
-	fmt.Printf("   - Tags: %v\n\n", moderationEvent.Tags)
+	fmt.Printf("   - Content: %s\n", adminsEvent.Content)
+	fmt.Printf("   - Tags: %v\n\n", adminsEvent.Tags)
 
 	// Parse and validate events
 	fmt.Println("6. Parsing and Validating Events...")
 
 	// Parse metadata event
-	metadata, err := nostreth.ParseGroupMetadataEvent(metadataEvent)
+	metadataEventData, err := nostreth.ParseGroupMetadataEvent(metadataEvent)
 	if err != nil {
 		log.Fatalf("Failed to parse group metadata: %v", err)
 	}
 	fmt.Printf("   Parsed Group Metadata:\n")
-	fmt.Printf("   - Name: %s\n", metadata.Name)
-	fmt.Printf("   - About: %s\n", metadata.About)
-	fmt.Printf("   - Private: %t\n", metadata.Private)
-	fmt.Printf("   - Admins: %v\n", metadata.Admins)
-	fmt.Printf("   - Moderators: %v\n\n", metadata.Moderators)
+	fmt.Printf("   - Group ID: %s\n", metadataEventData.GroupID)
+	fmt.Printf("   - Name: %s\n", metadataEventData.Metadata.Name)
+	fmt.Printf("   - About: %s\n", metadataEventData.Metadata.About)
+	fmt.Printf("   - Private: %t\n", metadataEventData.Metadata.Private)
+	fmt.Printf("   - Admins: %v\n", metadataEventData.Metadata.Admins)
+	fmt.Printf("   - Moderators: %v\n\n", metadataEventData.Metadata.Moderators)
 
-	// Parse message event
-	message, err := nostreth.ParseGroupMessageEvent(messageEvent)
+	// Parse name event
+	nameEventData, err := nostreth.ParseGroupNameEvent(nameEvent)
 	if err != nil {
-		log.Fatalf("Failed to parse group message: %v", err)
+		log.Fatalf("Failed to parse group name: %v", err)
 	}
-	fmt.Printf("   Parsed Group Message:\n")
-	fmt.Printf("   - Content: %s\n", message.Content)
-	fmt.Printf("   - Mentions: %v\n\n", message.Mentions)
+	fmt.Printf("   Parsed Group Name:\n")
+	fmt.Printf("   - Group ID: %s\n", nameEventData.GroupID)
+	fmt.Printf("   - Name: %s\n\n", nameEventData.Name)
+
+	// Parse about event
+	aboutEventData, err := nostreth.ParseGroupAboutEvent(aboutEvent)
+	if err != nil {
+		log.Fatalf("Failed to parse group about: %v", err)
+	}
+	fmt.Printf("   Parsed Group About:\n")
+	fmt.Printf("   - Group ID: %s\n", aboutEventData.GroupID)
+	fmt.Printf("   - About: %s\n\n", aboutEventData.About)
+
+	// Parse picture event
+	pictureEventData, err := nostreth.ParseGroupPictureEvent(pictureEvent)
+	if err != nil {
+		log.Fatalf("Failed to parse group picture: %v", err)
+	}
+	fmt.Printf("   Parsed Group Picture:\n")
+	fmt.Printf("   - Group ID: %s\n", pictureEventData.GroupID)
+	fmt.Printf("   - Picture: %s\n\n", pictureEventData.Picture)
+
+	// Parse admins event
+	adminsEventData, err := nostreth.ParseGroupAdminsEvent(adminsEvent)
+	if err != nil {
+		log.Fatalf("Failed to parse group admins: %v", err)
+	}
+	fmt.Printf("   Parsed Group Admins:\n")
+	fmt.Printf("   - Group ID: %s\n", adminsEventData.GroupID)
+	fmt.Printf("   - Admins: %v\n\n", adminsEventData.Admins)
 
 	// Utility functions demonstration
 	fmt.Println("7. Utility Functions Demonstration...")
 
 	// Check if events are group events
 	fmt.Printf("   Is metadata event a group event: %t\n", nostreth.IsGroupEvent(metadataEvent))
-	fmt.Printf("   Is message event a group event: %t\n", nostreth.IsGroupEvent(messageEvent))
+	fmt.Printf("   Is name event a group event: %t\n", nostreth.IsGroupEvent(nameEvent))
 
 	// Get group ID from events
 	metadataGroupID, err := nostreth.GetGroupIDFromEvent(metadataEvent)
@@ -412,7 +423,7 @@ func main() {
 
 	// Get event type
 	fmt.Printf("   Event type from metadata event: %s\n", nostreth.GetEventTypeFromGroupEvent(metadataEvent))
-	fmt.Printf("   Event type from message event: %s\n", nostreth.GetEventTypeFromGroupEvent(messageEvent))
+	fmt.Printf("   Event type from name event: %s\n", nostreth.GetEventTypeFromGroupEvent(nameEvent))
 
 	// Validate group ID
 	err = nostreth.ValidateGroupID(groupID)
@@ -430,7 +441,7 @@ func main() {
 
 	// Filter events by group
 	fmt.Println("8. Filtering Events by Group...")
-	allEvents := []*nostr.Event{metadataEvent, messageEvent, joinEvent, leaveEvent, moderationEvent}
+	allEvents := []*nostr.Event{metadataEvent, nameEvent, aboutEvent, pictureEvent, adminsEvent}
 	groupEvents := nostreth.FilterGroupEventsByGroupID(allEvents, groupID)
 	fmt.Printf("   Total events: %d\n", len(allEvents))
 	fmt.Printf("   Events in group '%s': %d\n", groupID, len(groupEvents))

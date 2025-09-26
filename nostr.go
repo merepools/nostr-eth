@@ -23,8 +23,23 @@ type GroupJoin = event.GroupJoin
 type GroupLeave = event.GroupLeave
 type GroupModeration = event.GroupModeration
 
+// Group Metadata Event Types (39000s)
+type GroupMetadataEvent = event.GroupMetadataEvent
+type GroupNameEvent = event.GroupNameEvent
+type GroupAboutEvent = event.GroupAboutEvent
+type GroupPictureEvent = event.GroupPictureEvent
+type GroupAdminsEvent = event.GroupAdminsEvent
+type GroupModeratorsEvent = event.GroupModeratorsEvent
+type GroupPrivateEvent = event.GroupPrivateEvent
+type GroupClosedEvent = event.GroupClosedEvent
+type GroupCreatedEvent = event.GroupCreatedEvent
+type GroupUpdatedEvent = event.GroupUpdatedEvent
+
 // Re-export log package constants
 const (
+	EventTxLogKind  = event.KindTxLog
+	EventUserOpKind = event.EventUserOpKind
+
 	EventTypeTxLogCreated    = event.EventTypeTxLogCreated
 	EventTypeTxLogUpdated    = event.EventTypeTxLogUpdated
 	EventTypeUserOpRequested = event.EventTypeUserOpRequested
@@ -36,11 +51,29 @@ const (
 
 // Re-export group package constants
 const (
+	// Group Moderation Events (9000s)
+	KindAddUser           = event.KindGroupAddUser
+	KindRemoveUser        = event.KindGroupRemoveUser
+	KindEditMetadata      = event.KindGroupEditMetadata
+	KindAddAdmin          = event.KindGroupAddAdmin
+	KindRemoveAdmin       = event.KindGroupRemoveAdmin
+	KindDeleteEvent       = event.KindGroupDeleteEvent
+	KindUpdateGroupStatus = event.KindGroupUpdateStatus
+	KindCreateGroup       = event.KindGroupCreate
+	KindDeleteGroup       = event.KindGroupDelete
+	KindJoinRequest       = event.KindGroupJoinRequest
+
+	// Group Metadata Events (39000s)
 	KindGroupMetadata   = event.KindGroupMetadata
-	KindGroupMessage    = event.KindGroupMessage
-	KindGroupJoin       = event.KindGroupJoin
-	KindGroupLeave      = event.KindGroupLeave
-	KindGroupModeration = event.KindGroupModeration
+	KindGroupName       = event.KindGroupName
+	KindGroupAbout      = event.KindGroupAbout
+	KindGroupPicture    = event.KindGroupPicture
+	KindGroupAdmins     = event.KindGroupAdmins
+	KindGroupModerators = event.KindGroupModerators
+	KindGroupPrivate    = event.KindGroupPrivate
+	KindGroupClosed     = event.KindGroupClosed
+	KindGroupCreated    = event.KindGroupCreated
+	KindGroupUpdated    = event.KindGroupUpdated
 )
 
 // Re-export log package functions
@@ -73,44 +106,143 @@ func ParseUserOpEvent(evt *nostr.Event) (*event.UserOpEvent, error) {
 }
 
 // Re-export group package functions
-func CreateGroupMetadataEvent(groupID, name, about, picture string, admins, moderators []string, private, closed bool) (*nostr.Event, error) {
-	return event.CreateGroupMetadataEvent(groupID, name, about, picture, admins, moderators, private, closed)
+// Group Moderation Events (9000s)
+func CreateGroupEvent(groupID, name, about, picture string, admins, moderators []string, private, closed bool) (*nostr.Event, error) {
+	return event.CreateGroupEvent(groupID, name, about, picture, admins, moderators, private, closed)
 }
 
-func CreateGroupMessageEvent(groupID, content, replyTo string, mentions []string) (*nostr.Event, error) {
-	return event.CreateGroupMessageEvent(groupID, content, replyTo, mentions)
+func CreateAddUserEvent(groupID, user, role string) (*nostr.Event, error) {
+	return event.CreateAddUserEvent(groupID, user, role)
 }
 
-func CreateGroupJoinEvent(groupID, user, role string) (*nostr.Event, error) {
-	return event.CreateGroupJoinEvent(groupID, user, role)
+func CreateRemoveUserEvent(groupID, user, reason string) (*nostr.Event, error) {
+	return event.CreateRemoveUserEvent(groupID, user, reason)
 }
 
-func CreateGroupLeaveEvent(groupID, user, reason string) (*nostr.Event, error) {
-	return event.CreateGroupLeaveEvent(groupID, user, reason)
+func CreateEditMetadataEvent(groupID, name, about, picture string, admins, moderators []string, private, closed bool) (*nostr.Event, error) {
+	return event.CreateEditMetadataEvent(groupID, name, about, picture, admins, moderators, private, closed)
 }
 
-func CreateGroupModerationEvent(groupID, action, target, reason string, duration int64) (*nostr.Event, error) {
-	return event.CreateGroupModerationEvent(groupID, action, target, reason, duration)
+func CreateAddAdminEvent(groupID, user string) (*nostr.Event, error) {
+	return event.CreateAddAdminEvent(groupID, user)
 }
 
-func ParseGroupMetadataEvent(evt *nostr.Event) (*event.GroupMetadata, error) {
+func CreateRemoveAdminEvent(groupID, user string) (*nostr.Event, error) {
+	return event.CreateRemoveAdminEvent(groupID, user)
+}
+
+func CreateDeleteEventEvent(groupID, eventID string) (*nostr.Event, error) {
+	return event.CreateDeleteEventEvent(groupID, eventID)
+}
+
+func CreateUpdateGroupStatusEvent(groupID, status string) (*nostr.Event, error) {
+	return event.CreateUpdateGroupStatusEvent(groupID, status)
+}
+
+func CreateDeleteGroupEvent(groupID string) (*nostr.Event, error) {
+	return event.CreateDeleteGroupEvent(groupID)
+}
+
+func CreateJoinRequestEvent(groupID, message string) (*nostr.Event, error) {
+	return event.CreateJoinRequestEvent(groupID, message)
+}
+
+// Group Metadata Events (39000s)
+func CreateGroupMetadataEvent(groupID string, metadata event.GroupMetadata) (*nostr.Event, error) {
+	return event.CreateGroupMetadataEvent(groupID, metadata)
+}
+
+func CreateGroupNameEvent(groupID, name string) (*nostr.Event, error) {
+	return event.CreateGroupNameEvent(groupID, name)
+}
+
+func CreateGroupAboutEvent(groupID, about string) (*nostr.Event, error) {
+	return event.CreateGroupAboutEvent(groupID, about)
+}
+
+func CreateGroupPictureEvent(groupID, picture string) (*nostr.Event, error) {
+	return event.CreateGroupPictureEvent(groupID, picture)
+}
+
+func CreateGroupAdminsEvent(groupID string, admins []string) (*nostr.Event, error) {
+	return event.CreateGroupAdminsEvent(groupID, admins)
+}
+
+func CreateGroupModeratorsEvent(groupID string, moderators []string) (*nostr.Event, error) {
+	return event.CreateGroupModeratorsEvent(groupID, moderators)
+}
+
+func CreateGroupPrivateEvent(groupID string, private bool) (*nostr.Event, error) {
+	return event.CreateGroupPrivateEvent(groupID, private)
+}
+
+func CreateGroupClosedEvent(groupID string, closed bool) (*nostr.Event, error) {
+	return event.CreateGroupClosedEvent(groupID, closed)
+}
+
+func CreateGroupCreatedEvent(groupID string, createdAt int64) (*nostr.Event, error) {
+	return event.CreateGroupCreatedEvent(groupID, createdAt)
+}
+
+func CreateGroupUpdatedEvent(groupID string, updatedAt int64) (*nostr.Event, error) {
+	return event.CreateGroupUpdatedEvent(groupID, updatedAt)
+}
+
+// Parse functions
+func ParseGroupEvent(evt *nostr.Event) (*event.GroupMetadata, error) {
+	return event.ParseGroupEvent(evt)
+}
+
+func ParseAddUserEvent(evt *nostr.Event) (*event.GroupJoin, error) {
+	return event.ParseAddUserEvent(evt)
+}
+
+func ParseRemoveUserEvent(evt *nostr.Event) (*event.GroupLeave, error) {
+	return event.ParseRemoveUserEvent(evt)
+}
+
+func ParseEditMetadataEvent(evt *nostr.Event) (*event.GroupMetadata, error) {
+	return event.ParseEditMetadataEvent(evt)
+}
+
+func ParseGroupMetadataEvent(evt *nostr.Event) (*event.GroupMetadataEvent, error) {
 	return event.ParseGroupMetadataEvent(evt)
 }
 
-func ParseGroupMessageEvent(evt *nostr.Event) (*event.GroupMessage, error) {
-	return event.ParseGroupMessageEvent(evt)
+func ParseGroupNameEvent(evt *nostr.Event) (*event.GroupNameEvent, error) {
+	return event.ParseGroupNameEvent(evt)
 }
 
-func ParseGroupJoinEvent(evt *nostr.Event) (*event.GroupJoin, error) {
-	return event.ParseGroupJoinEvent(evt)
+func ParseGroupAboutEvent(evt *nostr.Event) (*event.GroupAboutEvent, error) {
+	return event.ParseGroupAboutEvent(evt)
 }
 
-func ParseGroupLeaveEvent(evt *nostr.Event) (*event.GroupLeave, error) {
-	return event.ParseGroupLeaveEvent(evt)
+func ParseGroupPictureEvent(evt *nostr.Event) (*event.GroupPictureEvent, error) {
+	return event.ParseGroupPictureEvent(evt)
 }
 
-func ParseGroupModerationEvent(evt *nostr.Event) (*event.GroupModeration, error) {
-	return event.ParseGroupModerationEvent(evt)
+func ParseGroupAdminsEvent(evt *nostr.Event) (*event.GroupAdminsEvent, error) {
+	return event.ParseGroupAdminsEvent(evt)
+}
+
+func ParseGroupModeratorsEvent(evt *nostr.Event) (*event.GroupModeratorsEvent, error) {
+	return event.ParseGroupModeratorsEvent(evt)
+}
+
+func ParseGroupPrivateEvent(evt *nostr.Event) (*event.GroupPrivateEvent, error) {
+	return event.ParseGroupPrivateEvent(evt)
+}
+
+func ParseGroupClosedEvent(evt *nostr.Event) (*event.GroupClosedEvent, error) {
+	return event.ParseGroupClosedEvent(evt)
+}
+
+func ParseGroupCreatedEvent(evt *nostr.Event) (*event.GroupCreatedEvent, error) {
+	return event.ParseGroupCreatedEvent(evt)
+}
+
+func ParseGroupUpdatedEvent(evt *nostr.Event) (*event.GroupUpdatedEvent, error) {
+	return event.ParseGroupUpdatedEvent(evt)
 }
 
 func GetGroupIDFromEvent(evt *nostr.Event) (string, error) {
