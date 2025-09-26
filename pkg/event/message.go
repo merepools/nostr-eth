@@ -2,9 +2,14 @@ package event
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/nbd-wtf/go-nostr"
+)
+
+const (
+	KindGenericRepost = 16
 )
 
 // CreateMessageEvent creates a new Nostr event for a simple text message
@@ -247,22 +252,33 @@ func GetParticipantsFromEvent(evt *nostr.Event) []string {
 	return participants
 }
 
-// CreateMentionEvent creates a NIP-10 compliant mention event
-func CreateMentionEvent(content string, group *string, mentionEvent *nostr.Event) (*nostr.Event, error) {
+// CreateQuoteRepostEvent creates a NIP-18 compliant quote event
+func CreateQuoteRepostEvent(content string, group *string, repostedEvent *nostr.Event, relayURL string) (*nostr.Event, error) {
 	// Create the Nostr event with plain text content
 	evt := &nostr.Event{
 		PubKey:    "", // Will be derived from private key
 		CreatedAt: nostr.Timestamp(time.Now().Unix()),
-		Kind:      1, // Standard kind for text messages
+		Kind:      KindGenericRepost, // Standard kind for text messages
 		Tags:      make([]nostr.Tag, 0),
 		Content:   content, // Plain text content
 	}
 
-	// Add NIP-10 compliant e tag for mention
-	if mentionEvent != nil {
-		evt.Tags = append(evt.Tags, []string{"e", mentionEvent.ID, "", "mention", mentionEvent.PubKey})
+	// Add NIP-18 compliant q tag for quote
+	if repostedEvent != nil {
+		evt.Tags = append(evt.Tags, []string{"e", repostedEvent.ID, relayURL})
+
+		evt.Tags = append(evt.Tags, []string{"k", strconv.Itoa(repostedEvent.Kind)})
+
+		evt.Tags = append(evt.Tags, []string{"q", repostedEvent.ID, relayURL, "repost", repostedEvent.PubKey})
 		// Add p tag for mentioned event author (NIP-10 compliant)
-		evt.Tags = append(evt.Tags, []string{"p", mentionEvent.PubKey})
+		evt.Tags = append(evt.Tags, []string{"p", repostedEvent.PubKey})
+
+		// Encode the reposted event ID using NIP-19 nevent format
+		nevent, err := EncodeEventIDToNevent(repostedEvent.ID, relayURL, repostedEvent.PubKey, repostedEvent.Kind)
+		if err != nil {
+			return nil, fmt.Errorf("failed to encode event ID to nevent: %v", err)
+		}
+		evt.Content += "\n" + nevent
 	}
 
 	// Add tags for better indexing and filtering

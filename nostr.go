@@ -322,8 +322,8 @@ func GetParticipantsFromEvent(evt *nostr.Event) []string {
 	return event.GetParticipantsFromEvent(evt)
 }
 
-func CreateMentionEvent(content string, group *string, mentionEvent *nostr.Event) (*nostr.Event, error) {
-	return event.CreateMentionEvent(content, group, mentionEvent)
+func CreateQuoteRepostEvent(content string, group *string, repostedEvent *nostr.Event, relayURL string) (*nostr.Event, error) {
+	return event.CreateQuoteRepostEvent(content, group, repostedEvent, relayURL)
 }
 
 func IsReplyEvent(evt *nostr.Event) bool {
