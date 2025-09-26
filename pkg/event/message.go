@@ -1,77 +1,24 @@
 package event
 
 import (
-	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/nbd-wtf/go-nostr"
 )
 
-// NostrEventType represents the type of Nostr event for messages
-const (
-	EventTypeMessageCreated EventTypeMessage = "message_created"
-	EventTypeMessageUpdated EventTypeMessage = "message_updated"
-)
-
-type EventTypeMessage string
-
-// MessageEvent represents a Nostr event for simple text messages
-type MessageEvent struct {
-	MessageData MessageData      `json:"message_data"`
-	EventType   EventTypeMessage `json:"event_type"`
-	Tags        []string         `json:"tags,omitempty"`
-}
-
-// MessageData represents the core message data
-type MessageData struct {
-	ID        string    `json:"id"`
-	Content   string    `json:"content"`
-	ChainID   string    `json:"chain_id"`
-	TxHash    string    `json:"tx_hash"`
-	Group     string    `json:"group"`
-	Author    string    `json:"author"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-}
-
 // CreateMessageEvent creates a new Nostr event for a simple text message
 func CreateMessageEvent(content, chainID, txHash, group, author string) (*nostr.Event, error) {
 	// Generate a unique ID for the message
 	messageID := generateMessageID(chainID, txHash, content, author)
 
-	// Create the message data
-	messageData := MessageData{
-		ID:        messageID,
-		Content:   content,
-		ChainID:   chainID,
-		TxHash:    txHash,
-		Group:     group,
-		Author:    author,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-
-	// Create the event data
-	eventData := MessageEvent{
-		MessageData: messageData,
-		EventType:   EventTypeMessageCreated,
-		Tags:        []string{"message", "group"},
-	}
-
-	// Marshal the event data
-	contentJSON, err := json.Marshal(eventData)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create the Nostr event
+	// Create the Nostr event with plain text content
 	evt := &nostr.Event{
 		PubKey:    "", // Will be derived from private key
-		CreatedAt: nostr.Timestamp(messageData.CreatedAt.Unix()),
+		CreatedAt: nostr.Timestamp(time.Now().Unix()),
 		Kind:      1, // Standard kind for text messages
 		Tags:      make([]nostr.Tag, 0),
-		Content:   string(contentJSON),
+		Content:   content, // Plain text content
 	}
 
 	// Add tags for better indexing and filtering
@@ -97,39 +44,27 @@ func CreateMessageEvent(content, chainID, txHash, group, author string) (*nostr.
 }
 
 // UpdateMessageEvent creates a Nostr event for updating a message
-func UpdateMessageEvent(messageData MessageData, event *nostr.Event) (*nostr.Event, error) {
-	// Update the timestamp
-	messageData.UpdatedAt = time.Now()
+func UpdateMessageEvent(content, chainID, txHash, group, author string, event *nostr.Event) (*nostr.Event, error) {
+	// Generate a unique ID for the message
+	messageID := generateMessageID(chainID, txHash, content, author)
 
-	// Create the event data
-	eventData := MessageEvent{
-		MessageData: messageData,
-		EventType:   EventTypeMessageUpdated,
-		Tags:        []string{"message", "group", "update"},
-	}
-
-	// Marshal the event data
-	contentJSON, err := json.Marshal(eventData)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create the Nostr event
+	// Create the Nostr event with plain text content
 	evt := &nostr.Event{
 		PubKey:    "", // Will be derived from private key
-		CreatedAt: nostr.Timestamp(messageData.UpdatedAt.Unix()),
+		CreatedAt: nostr.Timestamp(time.Now().Unix()),
 		Kind:      1, // Standard kind for text messages
 		Tags:      make([]nostr.Tag, 0),
-		Content:   string(contentJSON),
+		Content:   content, // Plain text content
 	}
 
-	// Add reference to original event if provided
+	// Add reference to original event if provided (NIP-10 compliant)
 	if event != nil {
-		evt.Tags = append(evt.Tags, []string{"e", event.ID, "reply"}) // Reference to original event
+		// Use marked e tag format: [event-id, relay-url, marker, pubkey]
+		evt.Tags = append(evt.Tags, []string{"e", event.ID, "", "reply", event.PubKey})
 	}
 
 	// Add tags for better indexing and filtering
-	evt.Tags = append(evt.Tags, []string{"d", messageData.ID}) // Identifier
+	evt.Tags = append(evt.Tags, []string{"d", messageID}) // Identifier
 
 	// Type and category tags
 	evt.Tags = append(evt.Tags, []string{"t", "message"}) // Type
@@ -137,28 +72,18 @@ func UpdateMessageEvent(messageData MessageData, event *nostr.Event) (*nostr.Eve
 	evt.Tags = append(evt.Tags, []string{"t", "update"})  // Update marker
 
 	// Group tag for filtering by group (NIP-29 compliant)
-	evt.Tags = append(evt.Tags, []string{"h", messageData.Group}) // Group ID
+	evt.Tags = append(evt.Tags, []string{"h", group}) // Group ID
 
 	// Chain-specific tag
-	evt.Tags = append(evt.Tags, []string{"chain", messageData.ChainID}) // Chain ID
+	evt.Tags = append(evt.Tags, []string{"chain", chainID}) // Chain ID
 
 	// Reference tags for transaction hash
-	evt.Tags = append(evt.Tags, []string{"r", messageData.TxHash}) // Transaction hash as reference
+	evt.Tags = append(evt.Tags, []string{"r", txHash}) // Transaction hash as reference
 
-	// Author tag
-	evt.Tags = append(evt.Tags, []string{"p", messageData.Author}) // Author address
+	// Author tag (NIP-10 compliant)
+	evt.Tags = append(evt.Tags, []string{"p", author}) // Author address
 
 	return evt, nil
-}
-
-// ParseMessageEvent parses a Nostr event back into a MessageEvent
-func ParseMessageEvent(evt *nostr.Event) (*MessageEvent, error) {
-	var messageEvent MessageEvent
-	err := json.Unmarshal([]byte(evt.Content), &messageEvent)
-	if err != nil {
-		return nil, err
-	}
-	return &messageEvent, nil
 }
 
 // generateMessageID creates a unique ID for a message based on its content and metadata
@@ -234,4 +159,204 @@ func FilterEventsByTxHash(events []*nostr.Event, txHash string) []*nostr.Event {
 		}
 	}
 	return filtered
+}
+
+// CreateReplyEvent creates a NIP-10 compliant reply event
+func CreateReplyEvent(content, chainID, txHash, group, author string, replyTo *nostr.Event) (*nostr.Event, error) {
+	// Generate a unique ID for the message
+	messageID := generateMessageID(chainID, txHash, content, author)
+
+	// Create the Nostr event with plain text content
+	evt := &nostr.Event{
+		PubKey:    "", // Will be derived from private key
+		CreatedAt: nostr.Timestamp(time.Now().Unix()),
+		Kind:      1, // Standard kind for text messages
+		Tags:      make([]nostr.Tag, 0),
+		Content:   content, // Plain text content
+	}
+
+	// Add NIP-10 compliant e tags for reply threading
+	if replyTo != nil {
+		// Find the root event in the thread
+		rootEvent := findRootEvent(replyTo)
+
+		// Add reply marker to the immediate parent
+		evt.Tags = append(evt.Tags, []string{"e", replyTo.ID, "", "reply", replyTo.PubKey})
+
+		// Add root marker if this is not the root
+		if rootEvent.ID != replyTo.ID {
+			evt.Tags = append(evt.Tags, []string{"e", rootEvent.ID, "", "root", rootEvent.PubKey})
+		}
+	}
+
+	// Add tags for better indexing and filtering
+	evt.Tags = append(evt.Tags, []string{"d", messageID}) // Identifier
+
+	// Type and category tags
+	evt.Tags = append(evt.Tags, []string{"t", "message"}) // Type
+	evt.Tags = append(evt.Tags, []string{"t", "text"})    // Content type
+	evt.Tags = append(evt.Tags, []string{"t", "reply"})   // Reply marker
+
+	// Group tag for filtering by group (NIP-29 compliant)
+	evt.Tags = append(evt.Tags, []string{"h", group}) // Group ID
+
+	// Chain-specific tag
+	evt.Tags = append(evt.Tags, []string{"chain", chainID}) // Chain ID
+
+	// Reference tags for transaction hash
+	evt.Tags = append(evt.Tags, []string{"r", txHash}) // Transaction hash as reference
+
+	// Add NIP-10 compliant p tags for participant tracking
+	participants := getParticipantsFromEvent(replyTo)
+	participants[author] = true // Add current author
+	for participant := range participants {
+		evt.Tags = append(evt.Tags, []string{"p", participant})
+	}
+
+	return evt, nil
+}
+
+// findRootEvent finds the root event in a reply thread (NIP-10 compliant)
+func findRootEvent(event *nostr.Event) *nostr.Event {
+	// Look for root marker in e tags
+	for _, tag := range event.Tags {
+		if len(tag) >= 4 && tag[0] == "e" && tag[3] == "root" {
+			// This event references a root, return the current event as it's part of the thread
+			return event
+		}
+	}
+
+	// If no root marker found, this might be the root or we need to traverse
+	// For simplicity, return the current event
+	// In a full implementation, you might want to traverse the thread
+	return event
+}
+
+// getParticipantsFromEvent extracts all participants from an event's p tags (NIP-10 compliant)
+func getParticipantsFromEvent(event *nostr.Event) map[string]bool {
+	participants := make(map[string]bool)
+
+	if event == nil {
+		return participants
+	}
+
+	for _, tag := range event.Tags {
+		if len(tag) >= 2 && tag[0] == "p" {
+			participants[tag[1]] = true
+		}
+	}
+
+	return participants
+}
+
+// GetReplyChainFromEvent extracts the reply chain from an event (NIP-10 compliant)
+func GetReplyChainFromEvent(evt *nostr.Event) (string, string, error) {
+	var replyTo, root string
+
+	for _, tag := range evt.Tags {
+		if len(tag) >= 4 && tag[0] == "e" {
+			switch tag[3] {
+			case "reply":
+				replyTo = tag[1]
+			case "root":
+				root = tag[1]
+			}
+		}
+	}
+
+	return replyTo, root, nil
+}
+
+// GetParticipantsFromEvent extracts all participants from an event (NIP-10 compliant)
+func GetParticipantsFromEvent(evt *nostr.Event) []string {
+	var participants []string
+	seen := make(map[string]bool)
+
+	for _, tag := range evt.Tags {
+		if len(tag) >= 2 && tag[0] == "p" && !seen[tag[1]] {
+			participants = append(participants, tag[1])
+			seen[tag[1]] = true
+		}
+	}
+
+	return participants
+}
+
+// CreateMentionEvent creates a NIP-10 compliant mention event
+func CreateMentionEvent(content, chainID, txHash, group, author string, mentionEvent *nostr.Event) (*nostr.Event, error) {
+	// Generate a unique ID for the message
+	messageID := generateMessageID(chainID, txHash, content, author)
+
+	// Create the Nostr event with plain text content
+	evt := &nostr.Event{
+		PubKey:    "", // Will be derived from private key
+		CreatedAt: nostr.Timestamp(time.Now().Unix()),
+		Kind:      1, // Standard kind for text messages
+		Tags:      make([]nostr.Tag, 0),
+		Content:   content, // Plain text content
+	}
+
+	// Add NIP-10 compliant e tag for mention
+	if mentionEvent != nil {
+		evt.Tags = append(evt.Tags, []string{"e", mentionEvent.ID, "", "mention", mentionEvent.PubKey})
+	}
+
+	// Add tags for better indexing and filtering
+	evt.Tags = append(evt.Tags, []string{"d", messageID}) // Identifier
+
+	// Type and category tags
+	evt.Tags = append(evt.Tags, []string{"t", "message"}) // Type
+	evt.Tags = append(evt.Tags, []string{"t", "text"})    // Content type
+	evt.Tags = append(evt.Tags, []string{"t", "mention"}) // Mention marker
+
+	// Group tag for filtering by group (NIP-29 compliant)
+	evt.Tags = append(evt.Tags, []string{"h", group}) // Group ID
+
+	// Chain-specific tag
+	evt.Tags = append(evt.Tags, []string{"chain", chainID}) // Chain ID
+
+	// Reference tags for transaction hash
+	evt.Tags = append(evt.Tags, []string{"r", txHash}) // Transaction hash as reference
+
+	// Add p tags for participants (NIP-10 compliant)
+	evt.Tags = append(evt.Tags, []string{"p", author}) // Author address
+	if mentionEvent != nil {
+		evt.Tags = append(evt.Tags, []string{"p", mentionEvent.PubKey}) // Mentioned event author
+	}
+
+	return evt, nil
+}
+
+// IsReplyEvent checks if an event is a reply (NIP-10 compliant)
+func IsReplyEvent(evt *nostr.Event) bool {
+	for _, tag := range evt.Tags {
+		if len(tag) >= 4 && tag[0] == "e" && tag[3] == "reply" {
+			return true
+		}
+	}
+	return false
+}
+
+// IsMentionEvent checks if an event is a mention (NIP-10 compliant)
+func IsMentionEvent(evt *nostr.Event) bool {
+	for _, tag := range evt.Tags {
+		if len(tag) >= 4 && tag[0] == "e" && tag[3] == "mention" {
+			return true
+		}
+	}
+	return false
+}
+
+// IsRootEvent checks if an event is a root event (NIP-10 compliant)
+func IsRootEvent(evt *nostr.Event) bool {
+	// A root event has no reply markers pointing to it
+	// and may have root markers pointing to itself
+	hasReplyMarker := false
+	for _, tag := range evt.Tags {
+		if len(tag) >= 4 && tag[0] == "e" && tag[3] == "reply" {
+			hasReplyMarker = true
+			break
+		}
+	}
+	return !hasReplyMarker
 }
