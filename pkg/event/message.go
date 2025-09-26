@@ -269,7 +269,7 @@ func CreateQuoteRepostEvent(content string, group *string, repostedEvent *nostr.
 
 		evt.Tags = append(evt.Tags, []string{"k", strconv.Itoa(repostedEvent.Kind)})
 
-		evt.Tags = append(evt.Tags, []string{"q", repostedEvent.ID, relayURL, "repost", repostedEvent.PubKey})
+		evt.Tags = append(evt.Tags, []string{"q", repostedEvent.ID, relayURL, repostedEvent.PubKey})
 		// Add p tag for mentioned event author (NIP-10 compliant)
 		evt.Tags = append(evt.Tags, []string{"p", repostedEvent.PubKey})
 
