@@ -258,7 +258,7 @@ func CreateQuoteRepostEvent(content string, group *string, repostedEvent *nostr.
 	evt := &nostr.Event{
 		PubKey:    "", // Will be derived from private key
 		CreatedAt: nostr.Timestamp(time.Now().Unix()),
-		Kind:      KindGenericRepost, // Standard kind for text messages
+		Kind:      1, // Standard kind for text messages
 		Tags:      make([]nostr.Tag, 0),
 		Content:   content, // Plain text content
 	}
