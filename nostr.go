@@ -272,3 +272,68 @@ func ValidateGroupID(groupID string) error {
 func GetEventTypeFromGroupEvent(evt *nostr.Event) string {
 	return event.GetEventTypeFromGroupEvent(evt)
 }
+
+// Re-export message package functions
+func CreateMessageEvent(content string, group *string) (*nostr.Event, error) {
+	return event.CreateMessageEvent(content, group)
+}
+
+func UpdateMessageEvent(content string, group *string, originalEvent *nostr.Event) (*nostr.Event, error) {
+	return event.UpdateMessageEvent(content, group, originalEvent)
+}
+
+func GetGroupFromEvent(evt *nostr.Event) (string, error) {
+	return event.GetGroupFromEvent(evt)
+}
+
+func GetChainIDFromEvent(evt *nostr.Event) (string, error) {
+	return event.GetChainIDFromEvent(evt)
+}
+
+func GetTxHashFromEvent(evt *nostr.Event) (string, error) {
+	return event.GetTxHashFromEvent(evt)
+}
+
+func IsMessageEvent(evt *nostr.Event) bool {
+	return event.IsMessageEvent(evt)
+}
+
+func FilterEventsByGroup(events []*nostr.Event, group string) []*nostr.Event {
+	return event.FilterEventsByGroup(events, group)
+}
+
+func FilterEventsByChainID(events []*nostr.Event, chainID string) []*nostr.Event {
+	return event.FilterEventsByChainID(events, chainID)
+}
+
+func FilterEventsByTxHash(events []*nostr.Event, txHash string) []*nostr.Event {
+	return event.FilterEventsByTxHash(events, txHash)
+}
+
+func CreateReplyEvent(content string, group *string, replyTo *nostr.Event) (*nostr.Event, error) {
+	return event.CreateReplyEvent(content, group, replyTo)
+}
+
+func GetReplyChainFromEvent(evt *nostr.Event) (string, string, error) {
+	return event.GetReplyChainFromEvent(evt)
+}
+
+func GetParticipantsFromEvent(evt *nostr.Event) []string {
+	return event.GetParticipantsFromEvent(evt)
+}
+
+func CreateMentionEvent(content string, group *string, mentionEvent *nostr.Event) (*nostr.Event, error) {
+	return event.CreateMentionEvent(content, group, mentionEvent)
+}
+
+func IsReplyEvent(evt *nostr.Event) bool {
+	return event.IsReplyEvent(evt)
+}
+
+func IsMentionEvent(evt *nostr.Event) bool {
+	return event.IsMentionEvent(evt)
+}
+
+func IsRootEvent(evt *nostr.Event) bool {
+	return event.IsRootEvent(evt)
+}
