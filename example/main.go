@@ -247,4 +247,207 @@ func main() {
 	}
 
 	fmt.Println("\n=== Example Complete ===")
+
+	// Example 7: NIP-29 Group Implementation
+	fmt.Println("\n=== NIP-29 Group Implementation Example ===")
+
+	// Example group ID and host
+	groupID := "example-group-123"
+	host := "wss://groups.example.com"
+	groupIdentifier := nostreth.FormatGroupIdentifier(host, groupID)
+
+	fmt.Printf("Group Identifier: %s\n\n", groupIdentifier)
+
+	// Create Group Metadata Event (kind 39000)
+	fmt.Println("1. Creating Group Metadata Event...")
+	admins := []string{"admin1@example.com", "admin2@example.com"}
+	moderators := []string{"mod1@example.com", "mod2@example.com"}
+
+	metadataEvent, err := nostreth.CreateGroupMetadataEvent(
+		groupID,
+		"Example Group",
+		"This is an example group for demonstrating NIP-29",
+		"https://example.com/group-picture.jpg",
+		admins,
+		moderators,
+		true,  // private
+		false, // not closed
+	)
+	if err != nil {
+		log.Fatalf("Failed to create group metadata event: %v", err)
+	}
+
+	// Set a dummy pubkey for demonstration
+	metadataEvent.PubKey = "dummy-pubkey-for-demo"
+	metadataEvent.ID = "metadata-event-id"
+
+	fmt.Printf("   Group Metadata Event:\n")
+	fmt.Printf("   - Kind: %d\n", metadataEvent.Kind)
+	fmt.Printf("   - Group ID: %s\n", groupID)
+	fmt.Printf("   - Content: %s\n", metadataEvent.Content)
+	fmt.Printf("   - Tags: %v\n\n", metadataEvent.Tags)
+
+	// Create Group Message Event (kind 39001)
+	fmt.Println("2. Creating Group Message Event...")
+	mentions := []string{"user1@example.com", "user2@example.com"}
+
+	messageEvent, err := nostreth.CreateGroupMessageEvent(
+		groupID,
+		"Hello everyone! This is a test message in our group.",
+		"", // not a reply
+		mentions,
+	)
+	if err != nil {
+		log.Fatalf("Failed to create group message event: %v", err)
+	}
+
+	messageEvent.PubKey = "dummy-pubkey-for-demo"
+	messageEvent.ID = "message-event-id"
+
+	fmt.Printf("   Group Message Event:\n")
+	fmt.Printf("   - Kind: %d\n", messageEvent.Kind)
+	fmt.Printf("   - Group ID: %s\n", groupID)
+	fmt.Printf("   - Content: %s\n", messageEvent.Content)
+	fmt.Printf("   - Tags: %v\n\n", messageEvent.Tags)
+
+	// Create Group Join Event (kind 39002)
+	fmt.Println("3. Creating Group Join Event...")
+	joinEvent, err := nostreth.CreateGroupJoinEvent(
+		groupID,
+		"newuser@example.com",
+		"member",
+	)
+	if err != nil {
+		log.Fatalf("Failed to create group join event: %v", err)
+	}
+
+	joinEvent.PubKey = "dummy-pubkey-for-demo"
+	joinEvent.ID = "join-event-id"
+
+	fmt.Printf("   Group Join Event:\n")
+	fmt.Printf("   - Kind: %d\n", joinEvent.Kind)
+	fmt.Printf("   - Group ID: %s\n", groupID)
+	fmt.Printf("   - Content: %s\n", joinEvent.Content)
+	fmt.Printf("   - Tags: %v\n\n", joinEvent.Tags)
+
+	// Create Group Leave Event (kind 39003)
+	fmt.Println("4. Creating Group Leave Event...")
+	leaveEvent, err := nostreth.CreateGroupLeaveEvent(
+		groupID,
+		"leavinguser@example.com",
+		"Personal reasons",
+	)
+	if err != nil {
+		log.Fatalf("Failed to create group leave event: %v", err)
+	}
+
+	leaveEvent.PubKey = "dummy-pubkey-for-demo"
+	leaveEvent.ID = "leave-event-id"
+
+	fmt.Printf("   Group Leave Event:\n")
+	fmt.Printf("   - Kind: %d\n", leaveEvent.Kind)
+	fmt.Printf("   - Group ID: %s\n", groupID)
+	fmt.Printf("   - Content: %s\n", leaveEvent.Content)
+	fmt.Printf("   - Tags: %v\n\n", leaveEvent.Tags)
+
+	// Create Group Moderation Event (kind 39004)
+	fmt.Println("5. Creating Group Moderation Event...")
+	moderationEvent, err := nostreth.CreateGroupModerationEvent(
+		groupID,
+		"ban",
+		"spammer@example.com",
+		"Spamming the group",
+		86400, // 24 hours in seconds
+	)
+	if err != nil {
+		log.Fatalf("Failed to create group moderation event: %v", err)
+	}
+
+	moderationEvent.PubKey = "dummy-pubkey-for-demo"
+	moderationEvent.ID = "moderation-event-id"
+
+	fmt.Printf("   Group Moderation Event:\n")
+	fmt.Printf("   - Kind: %d\n", moderationEvent.Kind)
+	fmt.Printf("   - Group ID: %s\n", groupID)
+	fmt.Printf("   - Content: %s\n", moderationEvent.Content)
+	fmt.Printf("   - Tags: %v\n\n", moderationEvent.Tags)
+
+	// Parse and validate events
+	fmt.Println("6. Parsing and Validating Events...")
+
+	// Parse metadata event
+	metadata, err := nostreth.ParseGroupMetadataEvent(metadataEvent)
+	if err != nil {
+		log.Fatalf("Failed to parse group metadata: %v", err)
+	}
+	fmt.Printf("   Parsed Group Metadata:\n")
+	fmt.Printf("   - Name: %s\n", metadata.Name)
+	fmt.Printf("   - About: %s\n", metadata.About)
+	fmt.Printf("   - Private: %t\n", metadata.Private)
+	fmt.Printf("   - Admins: %v\n", metadata.Admins)
+	fmt.Printf("   - Moderators: %v\n\n", metadata.Moderators)
+
+	// Parse message event
+	message, err := nostreth.ParseGroupMessageEvent(messageEvent)
+	if err != nil {
+		log.Fatalf("Failed to parse group message: %v", err)
+	}
+	fmt.Printf("   Parsed Group Message:\n")
+	fmt.Printf("   - Content: %s\n", message.Content)
+	fmt.Printf("   - Mentions: %v\n\n", message.Mentions)
+
+	// Utility functions demonstration
+	fmt.Println("7. Utility Functions Demonstration...")
+
+	// Check if events are group events
+	fmt.Printf("   Is metadata event a group event: %t\n", nostreth.IsGroupEvent(metadataEvent))
+	fmt.Printf("   Is message event a group event: %t\n", nostreth.IsGroupEvent(messageEvent))
+
+	// Get group ID from events
+	metadataGroupID, err := nostreth.GetGroupIDFromEvent(metadataEvent)
+	if err != nil {
+		log.Fatalf("Failed to get group ID from metadata event: %v", err)
+	}
+	fmt.Printf("   Group ID from metadata event: %s\n", metadataGroupID)
+
+	// Get event type
+	fmt.Printf("   Event type from metadata event: %s\n", nostreth.GetEventTypeFromGroupEvent(metadataEvent))
+	fmt.Printf("   Event type from message event: %s\n", nostreth.GetEventTypeFromGroupEvent(messageEvent))
+
+	// Validate group ID
+	err = nostreth.ValidateGroupID(groupID)
+	if err != nil {
+		log.Fatalf("Group ID validation failed: %v", err)
+	}
+	fmt.Printf("   Group ID validation: PASSED\n")
+
+	// Parse group identifier
+	parsedHost, parsedGroupID, err := nostreth.ParseGroupIdentifier(groupIdentifier)
+	if err != nil {
+		log.Fatalf("Failed to parse group identifier: %v", err)
+	}
+	fmt.Printf("   Parsed group identifier - Host: %s, Group ID: %s\n\n", parsedHost, parsedGroupID)
+
+	// Filter events by group
+	fmt.Println("8. Filtering Events by Group...")
+	allEvents := []*nostr.Event{metadataEvent, messageEvent, joinEvent, leaveEvent, moderationEvent}
+	groupEvents := nostreth.FilterGroupEventsByGroupID(allEvents, groupID)
+	fmt.Printf("   Total events: %d\n", len(allEvents))
+	fmt.Printf("   Events in group '%s': %d\n", groupID, len(groupEvents))
+
+	for i, evt := range groupEvents {
+		eventType := nostreth.GetEventTypeFromGroupEvent(evt)
+		fmt.Printf("   Event %d: %s (kind %d)\n", i+1, eventType, evt.Kind)
+	}
+
+	fmt.Println("\n✅ NIP-29 Group Implementation Example Completed Successfully!")
+	fmt.Println("\nKey Features Implemented:")
+	fmt.Println("- Group metadata events (kind 39000)")
+	fmt.Println("- Group message events (kind 39001)")
+	fmt.Println("- Group join events (kind 39002)")
+	fmt.Println("- Group leave events (kind 39003)")
+	fmt.Println("- Group moderation events (kind 39004)")
+	fmt.Println("- Event parsing and validation")
+	fmt.Println("- Group filtering and utility functions")
+	fmt.Println("- Group identifier parsing and formatting")
 }
