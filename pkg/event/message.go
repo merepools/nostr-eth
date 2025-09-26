@@ -276,7 +276,7 @@ func CreateQuoteRepostEvent(content string, group *string, repostedEvent *nostr.
 		if err != nil {
 			return nil, fmt.Errorf("failed to encode event ID to nevent: %v", err)
 		}
-		evt.Content += "\n" + nevent
+		evt.Content += "\n nostr:" + nevent
 	}
 
 	// Add tags for better indexing and filtering
