@@ -1,0 +1,5 @@
+this is a module that implements custom and standard nostr nips
+
+nips documentation can be found here: https://github.com/nostr-protocol/nips
+
+each specific nip has a link to sub-documentation for that specific nip, follow the link to get more information
