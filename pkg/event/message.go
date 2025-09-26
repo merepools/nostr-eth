@@ -8,9 +8,7 @@ import (
 )
 
 // CreateMessageEvent creates a new Nostr event for a simple text message
-func CreateMessageEvent(content, chainID, txHash, group, author string) (*nostr.Event, error) {
-	// Generate a unique ID for the message
-	messageID := generateMessageID(chainID, txHash, content, author)
+func CreateMessageEvent(content string, group *string) (*nostr.Event, error) {
 
 	// Create the Nostr event with plain text content
 	evt := &nostr.Event{
@@ -22,31 +20,21 @@ func CreateMessageEvent(content, chainID, txHash, group, author string) (*nostr.
 	}
 
 	// Add tags for better indexing and filtering
-	evt.Tags = append(evt.Tags, []string{"d", messageID}) // Identifier
 
 	// Type and category tags
 	evt.Tags = append(evt.Tags, []string{"t", "message"}) // Type
 	evt.Tags = append(evt.Tags, []string{"t", "text"})    // Content type
 
 	// Group tag for filtering by group (NIP-29 compliant)
-	evt.Tags = append(evt.Tags, []string{"h", group}) // Group ID
-
-	// Chain-specific tag
-	evt.Tags = append(evt.Tags, []string{"chain", chainID}) // Chain ID
-
-	// Reference tags for transaction hash
-	evt.Tags = append(evt.Tags, []string{"r", txHash}) // Transaction hash as reference
-
-	// Author tag
-	evt.Tags = append(evt.Tags, []string{"p", author}) // Author address
+	if group != nil {
+		evt.Tags = append(evt.Tags, []string{"h", *group}) // Group ID
+	}
 
 	return evt, nil
 }
 
 // UpdateMessageEvent creates a Nostr event for updating a message
-func UpdateMessageEvent(content, chainID, txHash, group, author string, event *nostr.Event) (*nostr.Event, error) {
-	// Generate a unique ID for the message
-	messageID := generateMessageID(chainID, txHash, content, author)
+func UpdateMessageEvent(content string, group *string, originalEvent *nostr.Event) (*nostr.Event, error) {
 
 	// Create the Nostr event with plain text content
 	evt := &nostr.Event{
@@ -58,13 +46,12 @@ func UpdateMessageEvent(content, chainID, txHash, group, author string, event *n
 	}
 
 	// Add reference to original event if provided (NIP-10 compliant)
-	if event != nil {
+	if originalEvent != nil {
 		// Use marked e tag format: [event-id, relay-url, marker, pubkey]
-		evt.Tags = append(evt.Tags, []string{"e", event.ID, "", "reply", event.PubKey})
+		evt.Tags = append(evt.Tags, []string{"e", originalEvent.ID, "", "reply", originalEvent.PubKey})
 	}
 
 	// Add tags for better indexing and filtering
-	evt.Tags = append(evt.Tags, []string{"d", messageID}) // Identifier
 
 	// Type and category tags
 	evt.Tags = append(evt.Tags, []string{"t", "message"}) // Type
@@ -72,25 +59,11 @@ func UpdateMessageEvent(content, chainID, txHash, group, author string, event *n
 	evt.Tags = append(evt.Tags, []string{"t", "update"})  // Update marker
 
 	// Group tag for filtering by group (NIP-29 compliant)
-	evt.Tags = append(evt.Tags, []string{"h", group}) // Group ID
-
-	// Chain-specific tag
-	evt.Tags = append(evt.Tags, []string{"chain", chainID}) // Chain ID
-
-	// Reference tags for transaction hash
-	evt.Tags = append(evt.Tags, []string{"r", txHash}) // Transaction hash as reference
-
-	// Author tag (NIP-10 compliant)
-	evt.Tags = append(evt.Tags, []string{"p", author}) // Author address
+	if group != nil {
+		evt.Tags = append(evt.Tags, []string{"h", *group}) // Group ID
+	}
 
 	return evt, nil
-}
-
-// generateMessageID creates a unique ID for a message based on its content and metadata
-func generateMessageID(chainID, txHash, content, author string) string {
-	// Create a simple hash-like ID by combining key fields
-	// In a real implementation, you might want to use a proper hash function
-	return fmt.Sprintf("%s_%s_%s_%d", chainID, txHash, author, time.Now().UnixNano())
 }
 
 // GetGroupFromEvent extracts the group ID from a Nostr event (NIP-29 compliant)
@@ -162,9 +135,7 @@ func FilterEventsByTxHash(events []*nostr.Event, txHash string) []*nostr.Event {
 }
 
 // CreateReplyEvent creates a NIP-10 compliant reply event
-func CreateReplyEvent(content, chainID, txHash, group, author string, replyTo *nostr.Event) (*nostr.Event, error) {
-	// Generate a unique ID for the message
-	messageID := generateMessageID(chainID, txHash, content, author)
+func CreateReplyEvent(content string, group *string, replyTo *nostr.Event) (*nostr.Event, error) {
 
 	// Create the Nostr event with plain text content
 	evt := &nostr.Event{
@@ -187,10 +158,15 @@ func CreateReplyEvent(content, chainID, txHash, group, author string, replyTo *n
 		if rootEvent.ID != replyTo.ID {
 			evt.Tags = append(evt.Tags, []string{"e", rootEvent.ID, "", "root", rootEvent.PubKey})
 		}
+
+		// Add NIP-10 compliant p tags for participant tracking
+		participants := getParticipantsFromEvent(replyTo)
+		for participant := range participants {
+			evt.Tags = append(evt.Tags, []string{"p", participant})
+		}
 	}
 
 	// Add tags for better indexing and filtering
-	evt.Tags = append(evt.Tags, []string{"d", messageID}) // Identifier
 
 	// Type and category tags
 	evt.Tags = append(evt.Tags, []string{"t", "message"}) // Type
@@ -198,19 +174,8 @@ func CreateReplyEvent(content, chainID, txHash, group, author string, replyTo *n
 	evt.Tags = append(evt.Tags, []string{"t", "reply"})   // Reply marker
 
 	// Group tag for filtering by group (NIP-29 compliant)
-	evt.Tags = append(evt.Tags, []string{"h", group}) // Group ID
-
-	// Chain-specific tag
-	evt.Tags = append(evt.Tags, []string{"chain", chainID}) // Chain ID
-
-	// Reference tags for transaction hash
-	evt.Tags = append(evt.Tags, []string{"r", txHash}) // Transaction hash as reference
-
-	// Add NIP-10 compliant p tags for participant tracking
-	participants := getParticipantsFromEvent(replyTo)
-	participants[author] = true // Add current author
-	for participant := range participants {
-		evt.Tags = append(evt.Tags, []string{"p", participant})
+	if group != nil {
+		evt.Tags = append(evt.Tags, []string{"h", *group}) // Group ID
 	}
 
 	return evt, nil
@@ -283,10 +248,7 @@ func GetParticipantsFromEvent(evt *nostr.Event) []string {
 }
 
 // CreateMentionEvent creates a NIP-10 compliant mention event
-func CreateMentionEvent(content, chainID, txHash, group, author string, mentionEvent *nostr.Event) (*nostr.Event, error) {
-	// Generate a unique ID for the message
-	messageID := generateMessageID(chainID, txHash, content, author)
-
+func CreateMentionEvent(content string, group *string, mentionEvent *nostr.Event) (*nostr.Event, error) {
 	// Create the Nostr event with plain text content
 	evt := &nostr.Event{
 		PubKey:    "", // Will be derived from private key
@@ -299,10 +261,11 @@ func CreateMentionEvent(content, chainID, txHash, group, author string, mentionE
 	// Add NIP-10 compliant e tag for mention
 	if mentionEvent != nil {
 		evt.Tags = append(evt.Tags, []string{"e", mentionEvent.ID, "", "mention", mentionEvent.PubKey})
+		// Add p tag for mentioned event author (NIP-10 compliant)
+		evt.Tags = append(evt.Tags, []string{"p", mentionEvent.PubKey})
 	}
 
 	// Add tags for better indexing and filtering
-	evt.Tags = append(evt.Tags, []string{"d", messageID}) // Identifier
 
 	// Type and category tags
 	evt.Tags = append(evt.Tags, []string{"t", "message"}) // Type
@@ -310,18 +273,8 @@ func CreateMentionEvent(content, chainID, txHash, group, author string, mentionE
 	evt.Tags = append(evt.Tags, []string{"t", "mention"}) // Mention marker
 
 	// Group tag for filtering by group (NIP-29 compliant)
-	evt.Tags = append(evt.Tags, []string{"h", group}) // Group ID
-
-	// Chain-specific tag
-	evt.Tags = append(evt.Tags, []string{"chain", chainID}) // Chain ID
-
-	// Reference tags for transaction hash
-	evt.Tags = append(evt.Tags, []string{"r", txHash}) // Transaction hash as reference
-
-	// Add p tags for participants (NIP-10 compliant)
-	evt.Tags = append(evt.Tags, []string{"p", author}) // Author address
-	if mentionEvent != nil {
-		evt.Tags = append(evt.Tags, []string{"p", mentionEvent.PubKey}) // Mentioned event author
+	if group != nil {
+		evt.Tags = append(evt.Tags, []string{"h", *group}) // Group ID
 	}
 
 	return evt, nil
