@@ -37,7 +37,7 @@ type GroupUpdatedEvent = event.GroupUpdatedEvent
 
 // Re-export log package constants
 const (
-	EventTxLogKind  = event.KindTxLog
+	KindTxLog       = event.KindTxLog
 	EventUserOpKind = event.EventUserOpKind
 
 	EventTypeTxLogCreated    = event.EventTypeTxLogCreated
@@ -52,16 +52,16 @@ const (
 // Re-export group package constants
 const (
 	// Group Moderation Events (9000s)
-	KindAddUser           = event.KindGroupAddUser
-	KindRemoveUser        = event.KindGroupRemoveUser
-	KindEditMetadata      = event.KindGroupEditMetadata
-	KindAddAdmin          = event.KindGroupAddAdmin
-	KindRemoveAdmin       = event.KindGroupRemoveAdmin
-	KindDeleteEvent       = event.KindGroupDeleteEvent
-	KindUpdateGroupStatus = event.KindGroupUpdateStatus
-	KindCreateGroup       = event.KindGroupCreate
-	KindDeleteGroup       = event.KindGroupDelete
-	KindJoinRequest       = event.KindGroupJoinRequest
+	KindGroupAddUser      = event.KindGroupAddUser
+	KindGroupRemoveUser   = event.KindGroupRemoveUser
+	KindGroupEditMetadata = event.KindGroupEditMetadata
+	KindGroupAddAdmin     = event.KindGroupAddAdmin
+	KindGroupRemoveAdmin  = event.KindGroupRemoveAdmin
+	KindGroupDeleteEvent  = event.KindGroupDeleteEvent
+	KindGroupUpdateStatus = event.KindGroupUpdateStatus
+	KindGroupCreate       = event.KindGroupCreate
+	KindGroupDelete       = event.KindGroupDelete
+	KindGroupJoinRequest  = event.KindGroupJoinRequest
 
 	// Group Metadata Events (39000s)
 	KindGroupMetadata   = event.KindGroupMetadata
