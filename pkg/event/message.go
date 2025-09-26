@@ -265,8 +265,6 @@ func CreateQuoteRepostEvent(content string, group *string, repostedEvent *nostr.
 
 	// Add NIP-18 compliant q tag for quote
 	if repostedEvent != nil {
-		evt.Tags = append(evt.Tags, []string{"e", repostedEvent.ID, relayURL})
-
 		evt.Tags = append(evt.Tags, []string{"k", strconv.Itoa(repostedEvent.Kind)})
 
 		evt.Tags = append(evt.Tags, []string{"q", repostedEvent.ID, relayURL, repostedEvent.PubKey})
