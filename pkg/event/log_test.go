@@ -46,7 +46,7 @@ func TestCreateTxLogEvent(t *testing.T) {
 		if len(tag) >= 2 && tag[0] == "t" && tag[1] == "tx_log" {
 			foundTxLog = true
 		}
-		if len(tag) >= 2 && tag[0] == "t" && tag[1] == "ethereum" {
+		if len(tag) >= 2 && tag[0] == "network" && tag[1] == "evm" {
 			foundEthereum = true
 		}
 	}

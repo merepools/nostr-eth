@@ -32,7 +32,7 @@ func CreateTxLogEvent(log neth.Log) (*nostr.Event, error) {
 	eventData := TxLogEvent{
 		LogData:   log,
 		EventType: EventTypeTxLogCreated,
-		Tags:      []string{"tx_log", "ethereum"},
+		Tags:      []string{"tx_log", "evm", log.ChainID},
 	}
 
 	// Marshal the event data
@@ -54,11 +54,11 @@ func CreateTxLogEvent(log neth.Log) (*nostr.Event, error) {
 	evt.Tags = append(evt.Tags, []string{"d", log.Hash}) // Identifier
 
 	// Type and category tags
-	evt.Tags = append(evt.Tags, []string{"t", "tx_log"})   // Type
-	evt.Tags = append(evt.Tags, []string{"t", "ethereum"}) // Blockchain
+	evt.Tags = append(evt.Tags, []string{"t", "tx_log"})    // Type
+	evt.Tags = append(evt.Tags, []string{"network", "evm"}) // Blockchain
 
 	// Chain-specific tag
-	evt.Tags = append(evt.Tags, []string{"t", log.ChainID}) // Chain ID
+	evt.Tags = append(evt.Tags, []string{"layer", log.ChainID}) // Chain ID
 
 	// Reference tags for transaction hash
 	evt.Tags = append(evt.Tags, []string{"r", log.TxHash}) // Transaction hash as reference
@@ -85,7 +85,7 @@ func UpdateTxLogEvent(log neth.Log, event *nostr.Event) (*nostr.Event, error) {
 	eventData := TxLogEvent{
 		LogData:   log,
 		EventType: EventTypeTxLogUpdated,
-		Tags:      []string{"tx_log", "ethereum", "update"},
+		Tags:      []string{"tx_log", "evm", log.ChainID, "update"},
 	}
 
 	// Marshal the event data
@@ -112,12 +112,12 @@ func UpdateTxLogEvent(log neth.Log, event *nostr.Event) (*nostr.Event, error) {
 	evt.Tags = append(evt.Tags, []string{"d", log.Hash}) // Identifier
 
 	// Type and category tags
-	evt.Tags = append(evt.Tags, []string{"t", "tx_log"})   // Type
-	evt.Tags = append(evt.Tags, []string{"t", "ethereum"}) // Blockchain
-	evt.Tags = append(evt.Tags, []string{"t", "update"})   // Update marker
+	evt.Tags = append(evt.Tags, []string{"t", "tx_log"})    // Type
+	evt.Tags = append(evt.Tags, []string{"network", "evm"}) // Blockchain
+	evt.Tags = append(evt.Tags, []string{"t", "update"})    // Update marker
 
 	// Chain-specific tag
-	evt.Tags = append(evt.Tags, []string{"t", log.ChainID}) // Chain ID
+	evt.Tags = append(evt.Tags, []string{"layer", log.ChainID}) // Chain ID
 
 	// Reference tags for transaction hash
 	evt.Tags = append(evt.Tags, []string{"r", log.TxHash}) // Transaction hash as reference
