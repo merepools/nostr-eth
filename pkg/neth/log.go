@@ -17,6 +17,7 @@ type Log struct {
 	Hash      string           `json:"hash"`
 	TxHash    string           `json:"tx_hash"`
 	ChainID   string           `json:"chain_id"`
+	Topic     string           `json:"topic"`
 	CreatedAt time.Time        `json:"created_at"`
 	UpdatedAt time.Time        `json:"updated_at"`
 	Nonce     int64            `json:"nonce"`
@@ -73,6 +74,7 @@ func (t *Log) Update(tx *Log) {
 	t.Hash = tx.Hash
 	t.TxHash = tx.TxHash
 	t.ChainID = tx.ChainID
+	t.Topic = tx.Topic
 	t.CreatedAt = tx.CreatedAt
 	t.UpdatedAt = time.Now()
 	t.Nonce = tx.Nonce

@@ -70,6 +70,9 @@ func CreateTxLogEvent(log neth.Log) (*nostr.Event, error) {
 	// Amount/value tag for filtering
 	evt.Tags = append(evt.Tags, []string{"amount", log.Value.String()})
 
+	// Topic tag
+	evt.Tags = append(evt.Tags, []string{"t", log.Topic})
+
 	// Flatten data into tags
 	if log.Data != nil {
 		dataTags := flattenDataToTags(*log.Data)
@@ -128,6 +131,9 @@ func UpdateTxLogEvent(log neth.Log, event *nostr.Event) (*nostr.Event, error) {
 
 	// Amount/value tag for filtering
 	evt.Tags = append(evt.Tags, []string{"amount", log.Value.String()})
+
+	// Topic tag
+	evt.Tags = append(evt.Tags, []string{"t", log.Topic})
 
 	// Flatten data into tags
 	if log.Data != nil {
