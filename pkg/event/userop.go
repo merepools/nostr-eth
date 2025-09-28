@@ -2,6 +2,7 @@ package event
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/big"
 
 	"github.com/comunifi/nostr-eth/pkg/neth"
@@ -39,7 +40,7 @@ func RequestUserOpEvent(chainID *big.Int, paymaster *common.Address, userOp neth
 		UserOpData: userOp,
 		Paymaster:  paymaster,
 		EventType:  EventTypeUserOpRequested,
-		Tags:       []string{"user_op", "user_op_0_0_6", "ethereum", "account_abstraction"},
+		Tags:       []string{"user_op", "user_op_0_0_6", "evm", chainID.String(), "account_abstraction"},
 	}
 
 	// Marshal the event data
@@ -63,11 +64,11 @@ func RequestUserOpEvent(chainID *big.Int, paymaster *common.Address, userOp neth
 	// Type and category tags
 	evt.Tags = append(evt.Tags, []string{"t", "user_op"})             // Type
 	evt.Tags = append(evt.Tags, []string{"t", "user_op_0_0_6"})       // Version
-	evt.Tags = append(evt.Tags, []string{"t", "ethereum"})            // Blockchain
+	evt.Tags = append(evt.Tags, []string{"network", "evm"})           // Blockchain
 	evt.Tags = append(evt.Tags, []string{"t", "account_abstraction"}) // AA specific
 
 	// Chain-specific tag
-	evt.Tags = append(evt.Tags, []string{"t", chainID.String()}) // Chain ID
+	evt.Tags = append(evt.Tags, []string{"layer", chainID.String()}) // Chain ID
 
 	// Paymaster tag if present
 	if paymaster != nil {
@@ -79,6 +80,14 @@ func RequestUserOpEvent(chainID *big.Int, paymaster *common.Address, userOp neth
 
 	// Nonce tag for ordering
 	evt.Tags = append(evt.Tags, []string{"nonce", userOp.Nonce.String()})
+
+	// Alt tag
+	alt := fmt.Sprintf("This is a new user operation request on chain %s", chainID.String())
+	if paymaster != nil {
+		alt += fmt.Sprintf("\n this is intended for processing by paymaster: %s", paymaster.Hex())
+	}
+
+	evt.Tags = append(evt.Tags, []string{"alt", alt})
 
 	return evt, nil
 }
@@ -96,7 +105,7 @@ func UpdateUserOpEvent(chainID *big.Int, userOp neth.UserOp, eventType EventType
 		UserOpData: userOp,
 		Paymaster:  userOpEvent.Paymaster,
 		EventType:  eventType,
-		Tags:       []string{"user_op", "user_op_0_0_6", "ethereum", "account_abstraction", "update"},
+		Tags:       []string{"user_op", "user_op_0_0_6", "evm", chainID.String(), "account_abstraction", "update"},
 	}
 
 	// Marshal the event data
@@ -120,11 +129,11 @@ func UpdateUserOpEvent(chainID *big.Int, userOp neth.UserOp, eventType EventType
 	// Type and category tags
 	evt.Tags = append(evt.Tags, []string{"t", "user_op"})             // Type
 	evt.Tags = append(evt.Tags, []string{"t", "user_op_0_0_6"})       // Version
-	evt.Tags = append(evt.Tags, []string{"t", "ethereum"})            // Blockchain
+	evt.Tags = append(evt.Tags, []string{"network", "evm"})           // Blockchain
 	evt.Tags = append(evt.Tags, []string{"t", "account_abstraction"}) // AA specific
 
 	// Chain-specific tag
-	evt.Tags = append(evt.Tags, []string{"t", chainID.String()}) // Chain ID
+	evt.Tags = append(evt.Tags, []string{"layer", chainID.String()}) // Chain ID
 
 	// Paymaster tag if present
 	if userOpEvent.Paymaster != nil {
@@ -136,6 +145,14 @@ func UpdateUserOpEvent(chainID *big.Int, userOp neth.UserOp, eventType EventType
 
 	// Nonce tag for ordering
 	evt.Tags = append(evt.Tags, []string{"nonce", userOp.Nonce.String()})
+
+	// Alt tag
+	alt := fmt.Sprintf("This is a user operation update of type %s on chain %s", eventType, chainID.String())
+	if userOpEvent.Paymaster != nil {
+		alt += fmt.Sprintf("\n this is intended for processing by paymaster: %s", userOpEvent.Paymaster.Hex())
+	}
+
+	evt.Tags = append(evt.Tags, []string{"alt", alt})
 
 	return evt, nil
 }

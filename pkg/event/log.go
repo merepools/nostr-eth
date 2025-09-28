@@ -74,10 +74,22 @@ func CreateTxLogEvent(log neth.Log) (*nostr.Event, error) {
 	evt.Tags = append(evt.Tags, []string{"t", log.Topic})
 
 	// Flatten data into tags
+	dataTags := []nostr.Tag{}
 	if log.Data != nil {
-		dataTags := flattenDataToTags(*log.Data)
+		dataTags = flattenDataToTags(*log.Data)
 		evt.Tags = append(evt.Tags, dataTags...)
 	}
+
+	// Alt tag
+	alt := fmt.Sprintf("This is an evm transaction log for topic %s on chain %s", log.Topic, log.ChainID)
+	if len(dataTags) > 0 {
+		alt += "\n Data:"
+	}
+	for _, tag := range dataTags {
+		alt += fmt.Sprintf("\n %s: %s", tag[0], tag[1])
+	}
+
+	evt.Tags = append(evt.Tags, []string{"alt", alt})
 
 	return evt, nil
 }
@@ -136,10 +148,22 @@ func UpdateTxLogEvent(log neth.Log, event *nostr.Event) (*nostr.Event, error) {
 	evt.Tags = append(evt.Tags, []string{"t", log.Topic})
 
 	// Flatten data into tags
+	dataTags := []nostr.Tag{}
 	if log.Data != nil {
-		dataTags := flattenDataToTags(*log.Data)
+		dataTags = flattenDataToTags(*log.Data)
 		evt.Tags = append(evt.Tags, dataTags...)
 	}
+
+	// Alt tag
+	alt := fmt.Sprintf("This is an evm transaction log for topic %s on chain %s", log.Topic, log.ChainID)
+	if len(dataTags) > 0 {
+		alt += "\n Data:"
+	}
+	for _, tag := range dataTags {
+		alt += fmt.Sprintf("\n %s: %s", tag[0], tag[1])
+	}
+
+	evt.Tags = append(evt.Tags, []string{"alt", alt})
 
 	return evt, nil
 }
