@@ -93,8 +93,8 @@ func GetEventData(log neth.Log) (map[string]interface{}, error) {
 	return log.GetEventData()
 }
 
-func RequestUserOpEvent(chainID *big.Int, paymaster *common.Address, userOp neth.UserOp) (*nostr.Event, error) {
-	return event.RequestUserOpEvent(chainID, paymaster, userOp)
+func CreateUserOpEvent(chainID *big.Int, paymaster *common.Address, userOp neth.UserOp, eventType event.EventTypeUserOp) (*nostr.Event, error) {
+	return event.CreateUserOpEvent(chainID, paymaster, userOp, eventType)
 }
 
 func UpdateUserOpEvent(chainID *big.Int, userOp neth.UserOp, eventType event.EventTypeUserOp, ev *nostr.Event) (*nostr.Event, error) {

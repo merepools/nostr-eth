@@ -34,12 +34,12 @@ type UserOpEvent struct {
 }
 
 // CreateUserOpEvent creates a new Nostr event for a user operation
-func RequestUserOpEvent(chainID *big.Int, paymaster *common.Address, userOp neth.UserOp) (*nostr.Event, error) {
+func CreateUserOpEvent(chainID *big.Int, paymaster *common.Address, userOp neth.UserOp, eventType EventTypeUserOp) (*nostr.Event, error) {
 	// Create the event data
 	eventData := UserOpEvent{
 		UserOpData: userOp,
 		Paymaster:  paymaster,
-		EventType:  EventTypeUserOpRequested,
+		EventType:  eventType,
 		Tags:       []string{"user_op", "user_op_0_0_6", "evm", chainID.String(), "account_abstraction"},
 	}
 
