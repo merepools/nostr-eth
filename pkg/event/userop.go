@@ -29,16 +29,18 @@ type EventTypeUserOp string
 type UserOpEvent struct {
 	UserOpData neth.UserOp     `json:"user_op_data"`
 	Paymaster  *common.Address `json:"paymaster,omitempty"`
+	EntryPoint *common.Address `json:"entry_point,omitempty"`
 	EventType  EventTypeUserOp `json:"event_type"`
 	Tags       []string        `json:"tags,omitempty"`
 }
 
 // CreateUserOpEvent creates a new Nostr event for a user operation
-func CreateUserOpEvent(chainID *big.Int, paymaster *common.Address, userOp neth.UserOp, eventType EventTypeUserOp) (*nostr.Event, error) {
+func CreateUserOpEvent(chainID *big.Int, paymaster, entryPoint *common.Address, userOp neth.UserOp, eventType EventTypeUserOp) (*nostr.Event, error) {
 	// Create the event data
 	eventData := UserOpEvent{
 		UserOpData: userOp,
 		Paymaster:  paymaster,
+		EntryPoint: entryPoint,
 		EventType:  eventType,
 		Tags:       []string{"user_op", "user_op_0_0_6", "evm", chainID.String(), "account_abstraction"},
 	}
@@ -75,6 +77,11 @@ func CreateUserOpEvent(chainID *big.Int, paymaster *common.Address, userOp neth.
 		evt.Tags = append(evt.Tags, []string{"paymaster", paymaster.Hex()})
 	}
 
+	// Entry point tag if present
+	if entryPoint != nil {
+		evt.Tags = append(evt.Tags, []string{"entry_point", entryPoint.Hex()})
+	}
+
 	// Sender address tag
 	evt.Tags = append(evt.Tags, []string{"p", userOp.Sender.String()}) // Sender address
 
@@ -104,6 +111,7 @@ func UpdateUserOpEvent(chainID *big.Int, userOp neth.UserOp, eventType EventType
 	eventData := UserOpEvent{
 		UserOpData: userOp,
 		Paymaster:  userOpEvent.Paymaster,
+		EntryPoint: userOpEvent.EntryPoint,
 		EventType:  eventType,
 		Tags:       []string{"user_op", "user_op_0_0_6", "evm", chainID.String(), "account_abstraction", "update"},
 	}
@@ -138,6 +146,11 @@ func UpdateUserOpEvent(chainID *big.Int, userOp neth.UserOp, eventType EventType
 	// Paymaster tag if present
 	if userOpEvent.Paymaster != nil {
 		evt.Tags = append(evt.Tags, []string{"paymaster", userOpEvent.Paymaster.Hex()})
+	}
+
+	// Entry point tag if present
+	if userOpEvent.EntryPoint != nil {
+		evt.Tags = append(evt.Tags, []string{"entry_point", userOpEvent.EntryPoint.Hex()})
 	}
 
 	// Sender address tag
