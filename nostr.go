@@ -40,9 +40,12 @@ const (
 	KindTxLog       = event.KindTxLog
 	EventUserOpKind = event.EventUserOpKind
 
-	EventTypeTxLogCreated    = event.EventTypeTxLogCreated
-	EventTypeTxLogUpdated    = event.EventTypeTxLogUpdated
+	EventTypeTxLogCreated = event.EventTypeTxLogCreated
+	EventTypeTxLogUpdated = event.EventTypeTxLogUpdated
+
 	EventTypeUserOpRequested = event.EventTypeUserOpRequested
+	EventTypeUserOpSigned    = event.EventTypeUserOpSigned
+	EventTypeUserOpSubmitted = event.EventTypeUserOpSubmitted
 	EventTypeUserOpExecuted  = event.EventTypeUserOpExecuted
 	EventTypeUserOpConfirmed = event.EventTypeUserOpConfirmed
 	EventTypeUserOpExpired   = event.EventTypeUserOpExpired
