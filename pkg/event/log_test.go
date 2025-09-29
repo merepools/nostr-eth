@@ -31,8 +31,8 @@ func TestCreateTxLogEvent(t *testing.T) {
 	}
 
 	// Verify the event structure
-	if event.Kind != 30000 {
-		t.Errorf("Expected kind %d, got %d", 30000, event.Kind)
+	if event.Kind != 111000 {
+		t.Errorf("Expected kind %d, got %d", 111000, event.Kind)
 	}
 
 	if event.CreatedAt == 0 {
@@ -153,7 +153,7 @@ func TestParseTxLogEvent(t *testing.T) {
 		ID:        "event_id",
 		PubKey:    "pubkey",
 		CreatedAt: nostr.Timestamp(time.Now().Unix()),
-		Kind:      30000,
+		Kind:      111000,
 		Tags:      []nostr.Tag{},
 		Content:   string(content),
 		Sig:       "signature",

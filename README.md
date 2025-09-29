@@ -21,7 +21,7 @@ go get github.com/citizenapp2/nostr-eth
 
 The current implementation includes two main features:
 
-1. **Ethereum Transaction Logs (kind 30000)**: Generated when smart contracts emit events after transaction execution
+1. **Ethereum Transaction Logs (kind 111000)**: Generated when smart contracts emit events after transaction execution
 2. **NIP-29 Groups (kinds 39000-39004)**: Full implementation of the NIP-29 group specification for decentralized group chat functionality
 
 This serves as the first use case and will be referenced in the upcoming NIP.
@@ -477,9 +477,9 @@ type GenericJSONOutputter json.RawMessage
 - `GetEventTypeFromGroupEvent(evt *nostr.Event) string`
   - Determines the type of group event (metadata, message, join, leave, moderation)
 
-## Nostr Event Structure (Kind 30000)
+## Nostr Event Structure (Kind 111000)
 
-The module creates Nostr events with kind 30000 for Ethereum transaction logs:
+The module creates Nostr events with kind 111000 for Ethereum transaction logs:
 
 ### Event Content
 The event content contains a JSON object with:
@@ -667,7 +667,7 @@ This implementation provides full support for the following NIPs:
    - Full event filtering and utility functions
 
 2. **NIP-XX: Ethereum Transaction Logs** (Current implementation)
-   - Standardizes kind 30000 for Ethereum logs
+   - Standardizes kind 111000 for Ethereum logs
    - Defines tag structure and content format
    - Establishes event relationships
 
