@@ -2,6 +2,7 @@ package nostreth
 
 // Re-export all functions from the log package
 import (
+	"encoding/json"
 	"math/big"
 
 	"github.com/comunifi/nostr-eth/pkg/event"
@@ -96,8 +97,8 @@ func GetEventData(log neth.Log) (map[string]interface{}, error) {
 	return log.GetEventData()
 }
 
-func CreateUserOpEvent(chainID *big.Int, paymaster, entryPoint *common.Address, userOp neth.UserOp, eventType event.EventTypeUserOp) (*nostr.Event, error) {
-	return event.CreateUserOpEvent(chainID, paymaster, entryPoint, userOp, eventType)
+func CreateUserOpEvent(chainID *big.Int, paymaster, entryPoint *common.Address, data *json.RawMessage, userOp neth.UserOp, eventType event.EventTypeUserOp) (*nostr.Event, error) {
+	return event.CreateUserOpEvent(chainID, paymaster, entryPoint, data, userOp, eventType)
 }
 
 func UpdateUserOpEvent(chainID *big.Int, userOp neth.UserOp, eventType event.EventTypeUserOp, ev *nostr.Event) (*nostr.Event, error) {

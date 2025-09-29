@@ -27,20 +27,22 @@ type EventTypeUserOp string
 
 // UserOpEvent represents a Nostr event for user operations
 type UserOpEvent struct {
-	UserOpData neth.UserOp     `json:"user_op_data"`
-	Paymaster  *common.Address `json:"paymaster,omitempty"`
-	EntryPoint *common.Address `json:"entry_point,omitempty"`
-	EventType  EventTypeUserOp `json:"event_type"`
-	Tags       []string        `json:"tags,omitempty"`
+	UserOpData neth.UserOp      `json:"user_op_data"`
+	Paymaster  *common.Address  `json:"paymaster,omitempty"`
+	EntryPoint *common.Address  `json:"entry_point,omitempty"`
+	Data       *json.RawMessage `json:"data,omitempty"`
+	EventType  EventTypeUserOp  `json:"event_type"`
+	Tags       []string         `json:"tags,omitempty"`
 }
 
 // CreateUserOpEvent creates a new Nostr event for a user operation
-func CreateUserOpEvent(chainID *big.Int, paymaster, entryPoint *common.Address, userOp neth.UserOp, eventType EventTypeUserOp) (*nostr.Event, error) {
+func CreateUserOpEvent(chainID *big.Int, paymaster, entryPoint *common.Address, data *json.RawMessage, userOp neth.UserOp, eventType EventTypeUserOp) (*nostr.Event, error) {
 	// Create the event data
 	eventData := UserOpEvent{
 		UserOpData: userOp,
 		Paymaster:  paymaster,
 		EntryPoint: entryPoint,
+		Data:       data,
 		EventType:  eventType,
 		Tags:       []string{"user_op", "user_op_0_0_6", "evm", chainID.String(), "account_abstraction"},
 	}
@@ -112,6 +114,7 @@ func UpdateUserOpEvent(chainID *big.Int, userOp neth.UserOp, eventType EventType
 		UserOpData: userOp,
 		Paymaster:  userOpEvent.Paymaster,
 		EntryPoint: userOpEvent.EntryPoint,
+		Data:       userOpEvent.Data,
 		EventType:  eventType,
 		Tags:       []string{"user_op", "user_op_0_0_6", "evm", chainID.String(), "account_abstraction", "update"},
 	}
