@@ -61,7 +61,7 @@ func CreateUserOpEvent(chainID *big.Int, paymaster, entryPoint *common.Address, 
 	evt := &nostr.Event{
 		PubKey:    "", // Will be derived from private key
 		CreatedAt: nostr.Now(),
-		Kind:      30001, // Custom kind for user operations
+		Kind:      EventUserOpKind, // Custom kind for user operations
 		Tags:      make([]nostr.Tag, 0),
 		Content:   string(content),
 	}
@@ -140,7 +140,7 @@ func UpdateUserOpEvent(chainID *big.Int, userOp neth.UserOp, txHash *string, ret
 	evt := &nostr.Event{
 		PubKey:    "", // Will be derived from private key
 		CreatedAt: nostr.Now(),
-		Kind:      30001, // Custom kind for user operations
+		Kind:      EventUserOpKind, // Custom kind for user operations
 		Tags:      make([]nostr.Tag, 0),
 		Content:   string(content),
 	}
