@@ -12,7 +12,7 @@ import (
 
 // NostrEventType represents the type of Nostr event for user operations
 const (
-	EventUserOpKind = 9901
+	EventUserOpKind = 111001
 
 	EventTypeUserOpRequested EventTypeUserOp = "user_op_requested"
 	EventTypeUserOpSigned    EventTypeUserOp = "user_op_signed"

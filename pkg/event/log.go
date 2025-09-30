@@ -11,7 +11,7 @@ import (
 
 // NostrEventType represents the type of Nostr event for transaction logs
 const (
-	KindTxLog = 9900
+	KindTxLog = 111000
 
 	EventTypeTxLogCreated EventTypeTxLog = "tx_log_created"
 	EventTypeTxLogUpdated EventTypeTxLog = "tx_log_updated"
