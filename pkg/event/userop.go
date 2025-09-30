@@ -138,6 +138,7 @@ func CreateUserOpEvent(chainID *big.Int, paymaster, entryPoint *common.Address, 
 	evt.Tags = append(evt.Tags, []string{"t", "user_op_0_0_6"})       // Version
 	evt.Tags = append(evt.Tags, []string{"network", "evm"})           // Blockchain
 	evt.Tags = append(evt.Tags, []string{"t", "account_abstraction"}) // AA specific
+	evt.Tags = append(evt.Tags, []string{"t", string(eventType)})     // Event type
 
 	// Chain-specific tag
 	evt.Tags = append(evt.Tags, []string{"layer", chainID.String()}) // Chain ID
@@ -217,6 +218,7 @@ func UpdateUserOpEvent(chainID *big.Int, userOp neth.UserOp, txHash *string, ret
 	evt.Tags = append(evt.Tags, []string{"t", "user_op_0_0_6"})       // Version
 	evt.Tags = append(evt.Tags, []string{"network", "evm"})           // Blockchain
 	evt.Tags = append(evt.Tags, []string{"t", "account_abstraction"}) // AA specific
+	evt.Tags = append(evt.Tags, []string{"t", string(eventType)})     // Event type
 
 	// Chain-specific tag
 	evt.Tags = append(evt.Tags, []string{"layer", chainID.String()}) // Chain ID
