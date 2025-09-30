@@ -39,7 +39,7 @@ type UserOpEvent struct {
 
 func (u *UserOpEvent) MarshalJSON() ([]byte, error) {
 	// Marshal UserOpData using its custom marshaling
-	userOpDataBytes, err := json.Marshal(u.UserOpData)
+	userOpDataBytes, err := json.Marshal(&u.UserOpData)
 	if err != nil {
 		return nil, err
 	}
@@ -47,23 +47,38 @@ func (u *UserOpEvent) MarshalJSON() ([]byte, error) {
 	// Create a temporary struct that embeds all fields but overrides UserOpData
 	type Alias UserOpEvent
 	return json.Marshal(&struct {
-		UserOpData json.RawMessage `json:"user_op_data"`
-		*Alias
+		UserOpData json.RawMessage  `json:"user_op_data"`
+		Paymaster  *common.Address  `json:"paymaster,omitempty"`
+		EntryPoint *common.Address  `json:"entry_point,omitempty"`
+		Data       *json.RawMessage `json:"data,omitempty"`
+		TxHash     *string          `json:"tx_hash,omitempty"`
+		EventType  EventTypeUserOp  `json:"event_type"`
+		RetryCount int              `json:"retry_count,omitempty"`
+		Tags       []string         `json:"tags,omitempty"`
 	}{
 		UserOpData: userOpDataBytes,
-		Alias:      (*Alias)(u),
+		Paymaster:  u.Paymaster,
+		EntryPoint: u.EntryPoint,
+		Data:       u.Data,
+		TxHash:     u.TxHash,
+		EventType:  u.EventType,
+		RetryCount: u.RetryCount,
+		Tags:       u.Tags,
 	})
 }
 
 func (u *UserOpEvent) UnmarshalJSON(data []byte) error {
 	// Create a temporary struct to handle the custom unmarshaling
-	type Alias UserOpEvent
 	aux := &struct {
-		UserOpData json.RawMessage `json:"user_op_data"`
-		*Alias
-	}{
-		Alias: (*Alias)(u),
-	}
+		UserOpData json.RawMessage  `json:"user_op_data"`
+		Paymaster  *common.Address  `json:"paymaster,omitempty"`
+		EntryPoint *common.Address  `json:"entry_point,omitempty"`
+		Data       *json.RawMessage `json:"data,omitempty"`
+		TxHash     *string          `json:"tx_hash,omitempty"`
+		EventType  EventTypeUserOp  `json:"event_type"`
+		RetryCount int              `json:"retry_count,omitempty"`
+		Tags       []string         `json:"tags,omitempty"`
+	}{}
 
 	if err := json.Unmarshal(data, &aux); err != nil {
 		return err
@@ -73,6 +88,15 @@ func (u *UserOpEvent) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(aux.UserOpData, &u.UserOpData); err != nil {
 		return err
 	}
+
+	// Copy the other unmarshaled data to the struct
+	u.Paymaster = aux.Paymaster
+	u.EntryPoint = aux.EntryPoint
+	u.Data = aux.Data
+	u.TxHash = aux.TxHash
+	u.EventType = aux.EventType
+	u.RetryCount = aux.RetryCount
+	u.Tags = aux.Tags
 
 	return nil
 }
@@ -91,8 +115,8 @@ func CreateUserOpEvent(chainID *big.Int, paymaster, entryPoint *common.Address, 
 		Tags:       []string{"user_op", "user_op_0_0_6", "evm", chainID.String(), "account_abstraction"},
 	}
 
-	// Marshal the event data
-	content, err := json.Marshal(eventData)
+	// Marshal the event data using the custom marshaling
+	content, err := json.Marshal(&eventData)
 	if err != nil {
 		return nil, err
 	}
@@ -170,8 +194,8 @@ func UpdateUserOpEvent(chainID *big.Int, userOp neth.UserOp, txHash *string, ret
 		Tags:       []string{"user_op", "user_op_0_0_6", "evm", chainID.String(), "account_abstraction", "update"},
 	}
 
-	// Marshal the event data
-	content, err := json.Marshal(eventData)
+	// Marshal the event data using the custom marshaling
+	content, err := json.Marshal(&eventData)
 	if err != nil {
 		return nil, err
 	}
