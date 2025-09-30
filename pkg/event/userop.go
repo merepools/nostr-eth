@@ -12,7 +12,7 @@ import (
 
 // NostrEventType represents the type of Nostr event for user operations
 const (
-	EventUserOpKind = 111001
+	EventUserOpKind = 9901
 
 	EventTypeUserOpRequested EventTypeUserOp = "user_op_requested"
 	EventTypeUserOpSigned    EventTypeUserOp = "user_op_signed"
@@ -35,6 +35,46 @@ type UserOpEvent struct {
 	EventType  EventTypeUserOp  `json:"event_type"`
 	RetryCount int              `json:"retry_count,omitempty"`
 	Tags       []string         `json:"tags,omitempty"`
+}
+
+func (u *UserOpEvent) MarshalJSON() ([]byte, error) {
+	// Marshal UserOpData using its custom marshaling
+	userOpDataBytes, err := json.Marshal(u.UserOpData)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create a temporary struct that embeds all fields but overrides UserOpData
+	type Alias UserOpEvent
+	return json.Marshal(&struct {
+		UserOpData json.RawMessage `json:"user_op_data"`
+		*Alias
+	}{
+		UserOpData: userOpDataBytes,
+		Alias:      (*Alias)(u),
+	})
+}
+
+func (u *UserOpEvent) UnmarshalJSON(data []byte) error {
+	// Create a temporary struct to handle the custom unmarshaling
+	type Alias UserOpEvent
+	aux := &struct {
+		UserOpData json.RawMessage `json:"user_op_data"`
+		*Alias
+	}{
+		Alias: (*Alias)(u),
+	}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	// Unmarshal the UserOpData using the custom unmarshaling from neth.UserOp
+	if err := json.Unmarshal(aux.UserOpData, &u.UserOpData); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // CreateUserOpEvent creates a new Nostr event for a user operation
