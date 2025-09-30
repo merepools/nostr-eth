@@ -101,8 +101,8 @@ func CreateUserOpEvent(chainID *big.Int, paymaster, entryPoint *common.Address, 
 	return event.CreateUserOpEvent(chainID, paymaster, entryPoint, data, txHash, userOp, eventType)
 }
 
-func UpdateUserOpEvent(chainID *big.Int, userOp neth.UserOp, eventType event.EventTypeUserOp, ev *nostr.Event) (*nostr.Event, error) {
-	return event.UpdateUserOpEvent(chainID, userOp, eventType, ev)
+func UpdateUserOpEvent(chainID *big.Int, userOp neth.UserOp, txHash *string, eventType event.EventTypeUserOp, ev *nostr.Event) (*nostr.Event, error) {
+	return event.UpdateUserOpEvent(chainID, userOp, txHash, eventType, ev)
 }
 
 func ParseUserOpEvent(evt *nostr.Event) (*event.UserOpEvent, error) {

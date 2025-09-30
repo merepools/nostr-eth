@@ -109,7 +109,7 @@ func CreateUserOpEvent(chainID *big.Int, paymaster, entryPoint *common.Address, 
 }
 
 // UpdateUserOpEvent creates a Nostr event for updating a user operation status
-func UpdateUserOpEvent(chainID *big.Int, userOp neth.UserOp, eventType EventTypeUserOp, event *nostr.Event) (*nostr.Event, error) {
+func UpdateUserOpEvent(chainID *big.Int, userOp neth.UserOp, txHash *string, eventType EventTypeUserOp, event *nostr.Event) (*nostr.Event, error) {
 
 	userOpEvent, err := ParseUserOpEvent(event)
 	if err != nil {
@@ -122,7 +122,7 @@ func UpdateUserOpEvent(chainID *big.Int, userOp neth.UserOp, eventType EventType
 		Paymaster:  userOpEvent.Paymaster,
 		EntryPoint: userOpEvent.EntryPoint,
 		Data:       userOpEvent.Data,
-		TxHash:     userOpEvent.TxHash,
+		TxHash:     txHash,
 		EventType:  eventType,
 		Tags:       []string{"user_op", "user_op_0_0_6", "evm", chainID.String(), "account_abstraction", "update"},
 	}
