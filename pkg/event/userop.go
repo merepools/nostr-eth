@@ -33,11 +33,12 @@ type UserOpEvent struct {
 	Data       *json.RawMessage `json:"data,omitempty"`
 	TxHash     *string          `json:"tx_hash,omitempty"`
 	EventType  EventTypeUserOp  `json:"event_type"`
+	RetryCount int              `json:"retry_count,omitempty"`
 	Tags       []string         `json:"tags,omitempty"`
 }
 
 // CreateUserOpEvent creates a new Nostr event for a user operation
-func CreateUserOpEvent(chainID *big.Int, paymaster, entryPoint *common.Address, data *json.RawMessage, txHash *string, userOp neth.UserOp, eventType EventTypeUserOp) (*nostr.Event, error) {
+func CreateUserOpEvent(chainID *big.Int, paymaster, entryPoint *common.Address, data *json.RawMessage, txHash *string, retryCount int, userOp neth.UserOp, eventType EventTypeUserOp) (*nostr.Event, error) {
 	// Create the event data
 	eventData := UserOpEvent{
 		UserOpData: userOp,
@@ -46,6 +47,7 @@ func CreateUserOpEvent(chainID *big.Int, paymaster, entryPoint *common.Address, 
 		Data:       data,
 		TxHash:     txHash,
 		EventType:  eventType,
+		RetryCount: retryCount,
 		Tags:       []string{"user_op", "user_op_0_0_6", "evm", chainID.String(), "account_abstraction"},
 	}
 
@@ -109,7 +111,7 @@ func CreateUserOpEvent(chainID *big.Int, paymaster, entryPoint *common.Address, 
 }
 
 // UpdateUserOpEvent creates a Nostr event for updating a user operation status
-func UpdateUserOpEvent(chainID *big.Int, userOp neth.UserOp, txHash *string, eventType EventTypeUserOp, event *nostr.Event) (*nostr.Event, error) {
+func UpdateUserOpEvent(chainID *big.Int, userOp neth.UserOp, txHash *string, retryCount int, eventType EventTypeUserOp, event *nostr.Event) (*nostr.Event, error) {
 
 	userOpEvent, err := ParseUserOpEvent(event)
 	if err != nil {
@@ -124,6 +126,7 @@ func UpdateUserOpEvent(chainID *big.Int, userOp neth.UserOp, txHash *string, eve
 		Data:       userOpEvent.Data,
 		TxHash:     txHash,
 		EventType:  eventType,
+		RetryCount: retryCount,
 		Tags:       []string{"user_op", "user_op_0_0_6", "evm", chainID.String(), "account_abstraction", "update"},
 	}
 
