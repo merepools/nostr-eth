@@ -96,6 +96,9 @@ func CreateTxTransferEvent(log neth.Log) (*nostr.Event, error) {
 	// Topic tag
 	evt.Tags = append(evt.Tags, []string{"t", log.Topic})
 
+	// Contract address tag
+	evt.Tags = append(evt.Tags, []string{"t", log.To})
+
 	// Flatten data into tags
 	dataTags := []nostr.Tag{}
 	if log.Data != nil {
