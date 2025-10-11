@@ -13,6 +13,7 @@ import (
 
 // Re-export log package types
 type TxLogEvent = event.TxLogEvent
+type TxTransferEvent = event.TxTransferEvent
 type Log = neth.Log
 type UserOpEvent = event.UserOpEvent
 type UserOp = neth.UserOp
