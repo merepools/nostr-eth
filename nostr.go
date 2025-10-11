@@ -41,6 +41,8 @@ const (
 	KindTxLog       = event.KindTxLog
 	EventUserOpKind = event.EventUserOpKind
 
+	TopicERC20Transfer = neth.TopicERC20Transfer
+
 	EventTypeTxLogCreated      = event.EventTypeTxLogCreated
 	EventTypeTxTransferCreated = event.EventTypeTxTransferCreated
 

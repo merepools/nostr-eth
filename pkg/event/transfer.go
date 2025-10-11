@@ -26,7 +26,7 @@ type TxTransferEvent struct {
 
 // CreateTxTransferEvent creates a new Nostr event for a transfer
 func CreateTxTransferEvent(log neth.Log) (*nostr.Event, error) {
-	if log.Topic != neth.ERC20TransferTopic {
+	if log.Topic != neth.TopicERC20Transfer {
 		return nil, fmt.Errorf("topic is not an ERC20 transfer")
 	}
 
