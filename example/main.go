@@ -104,19 +104,8 @@ func main() {
 		}
 	}
 
-	// Example 3: Update log status and create update event
-	fmt.Println("\n3. Updating Log Status:")
-	var updateEvent *nostr.Event
-	updateEvent, err = nostreth.UpdateTxLogEvent(customLogData, &nostr.Event{ID: "event_id"})
-	if err != nil {
-		log.Fatalf("Failed to create update event: %v", err)
-	}
-
-	fmt.Printf("   Update Event Kind: %d\n", updateEvent.Kind)
-	fmt.Printf("   Update Event Tags Count: %d\n", len(updateEvent.Tags))
-
-	// Example 4: Parse event back
-	fmt.Println("\n4. Parsing Event Back:")
+	// Example 3: Parse event back
+	fmt.Println("\n3. Parsing Event Back:")
 	var parsedEvent *nostreth.TxLogEvent
 	parsedEvent, err = nostreth.ParseTxLogEvent(nostrEvent)
 	if err != nil {
@@ -126,8 +115,8 @@ func main() {
 	fmt.Printf("   Parsed Event Type: %s\n", parsedEvent.EventType)
 	fmt.Printf("   Parsed Log Hash: %v\n", parsedEvent.LogData.Hash)
 
-	// Example 5: JSON representation
-	fmt.Println("\n5. JSON Representation:")
+	// Example 4: JSON representation
+	fmt.Println("\n4. JSON Representation:")
 	var eventJSON []byte
 	eventJSON, err = json.MarshalIndent(nostrEvent, "", "  ")
 	if err != nil {
@@ -135,10 +124,10 @@ func main() {
 	}
 	fmt.Printf("   Nostr Event JSON:\n%s\n", string(eventJSON))
 
-	// Example 6: Check if it's an ERC20 transfer
+	// Example 5: Check if it's an ERC20 transfer
 
-	// Example 2: Dynamic data flattening with different event types
-	fmt.Println("\n=== Example 2: Dynamic Data Flattening ===")
+	// Example 3: Dynamic data flattening with different event types
+	fmt.Println("\n=== Example 3: Dynamic Data Flattening ===")
 
 	data2, err := json.Marshal(map[string]interface{}{
 		"topic": "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",

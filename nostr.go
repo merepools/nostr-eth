@@ -41,8 +41,8 @@ const (
 	KindTxLog       = event.KindTxLog
 	EventUserOpKind = event.EventUserOpKind
 
-	EventTypeTxLogCreated = event.EventTypeTxLogCreated
-	EventTypeTxLogUpdated = event.EventTypeTxLogUpdated
+	EventTypeTxLogCreated      = event.EventTypeTxLogCreated
+	EventTypeTxTransferCreated = event.EventTypeTxTransferCreated
 
 	EventTypeUserOpRequested = event.EventTypeUserOpRequested
 	EventTypeUserOpSigned    = event.EventTypeUserOpSigned
@@ -81,12 +81,16 @@ const (
 )
 
 // Re-export log package functions
-func CreateTxLogEvent(log neth.Log) (*nostr.Event, error) {
-	return event.CreateTxLogEvent(log)
+func CreateTxTransferEvent(log neth.Log) (*nostr.Event, error) {
+	return event.CreateTxTransferEvent(log)
 }
 
-func UpdateTxLogEvent(log neth.Log, ev *nostr.Event) (*nostr.Event, error) {
-	return event.UpdateTxLogEvent(log, ev)
+func ParseTxTransferEvent(evt *nostr.Event) (*event.TxTransferEvent, error) {
+	return event.ParseTxTransferEvent(evt)
+}
+
+func CreateTxLogEvent(log neth.Log) (*nostr.Event, error) {
+	return event.CreateTxLogEvent(log)
 }
 
 func ParseTxLogEvent(evt *nostr.Event) (*event.TxLogEvent, error) {

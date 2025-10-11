@@ -14,7 +14,6 @@ const (
 	KindTxLog = 111000
 
 	EventTypeTxLogCreated EventTypeTxLog = "tx_log_created"
-	EventTypeTxLogUpdated EventTypeTxLog = "tx_log_updated"
 )
 
 type EventTypeTxLog string
@@ -64,81 +63,7 @@ func CreateTxLogEvent(log neth.Log) (*nostr.Event, error) {
 	evt.Tags = append(evt.Tags, []string{"r", log.TxHash}) // Transaction hash as reference
 
 	// Address tags (using "p" for pubkey-like addresses)
-	evt.Tags = append(evt.Tags, []string{"p", log.Sender}) // Sender address
-	evt.Tags = append(evt.Tags, []string{"p", log.To})     // Recipient/Contract address
-
-	// Amount/value tag for filtering
-	evt.Tags = append(evt.Tags, []string{"amount", log.Value.String()})
-
-	// Topic tag
-	evt.Tags = append(evt.Tags, []string{"t", log.Topic})
-
-	// Flatten data into tags
-	dataTags := []nostr.Tag{}
-	if log.Data != nil {
-		dataTags = flattenDataToTags(*log.Data)
-		evt.Tags = append(evt.Tags, dataTags...)
-	}
-
-	// Alt tag
-	alt := fmt.Sprintf("This is an evm transaction log for topic %s on chain %s", log.Topic, log.ChainID)
-	if len(dataTags) > 0 {
-		alt += "\n Data:"
-	}
-	for _, tag := range dataTags {
-		alt += fmt.Sprintf("\n %s: %s", tag[0], tag[1])
-	}
-
-	evt.Tags = append(evt.Tags, []string{"alt", alt})
-
-	return evt, nil
-}
-
-// UpdateTxLogEvent creates a Nostr event for updating a transaction log status
-func UpdateTxLogEvent(log neth.Log, event *nostr.Event) (*nostr.Event, error) {
-	// Create the event data
-	eventData := TxLogEvent{
-		LogData:   log,
-		EventType: EventTypeTxLogUpdated,
-		Tags:      []string{"tx_log", "evm", log.ChainID, "update"},
-	}
-
-	// Marshal the event data
-	content, err := json.Marshal(eventData)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create the Nostr event
-	evt := &nostr.Event{
-		PubKey:    "", // Will be derived from private key
-		CreatedAt: nostr.Timestamp(log.CreatedAt.Unix()),
-		Kind:      KindTxLog, // Custom kind for transaction logs
-		Tags:      make([]nostr.Tag, 0),
-		Content:   string(content),
-	}
-
-	// Add reference to original event if provided
-	if event != nil {
-		evt.Tags = append(evt.Tags, []string{"e", event.ID, "reply"}) // Reference to original event
-	}
-
-	// Add tags for better indexing and filtering
-	evt.Tags = append(evt.Tags, []string{"d", log.Hash}) // Identifier
-
-	// Type and category tags
-	evt.Tags = append(evt.Tags, []string{"t", "tx_log"})    // Type
-	evt.Tags = append(evt.Tags, []string{"network", "evm"}) // Blockchain
-	evt.Tags = append(evt.Tags, []string{"t", "update"})    // Update marker
-
-	// Chain-specific tag
-	evt.Tags = append(evt.Tags, []string{"layer", log.ChainID}) // Chain ID
-
-	// Reference tags for transaction hash
-	evt.Tags = append(evt.Tags, []string{"r", log.TxHash}) // Transaction hash as reference
-
-	// Address tags (using "p" for pubkey-like addresses)
-	evt.Tags = append(evt.Tags, []string{"p", log.Sender}) // Sender address
+	evt.Tags = append(evt.Tags, []string{"P", log.Sender}) // Sender address
 	evt.Tags = append(evt.Tags, []string{"p", log.To})     // Recipient/Contract address
 
 	// Amount/value tag for filtering

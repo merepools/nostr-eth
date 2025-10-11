@@ -59,67 +59,6 @@ func TestCreateTxLogEvent(t *testing.T) {
 	}
 }
 
-func TestUpdateTxLogEventWithReference(t *testing.T) {
-	// Create log data
-	logData := neth.Log{
-		Hash:      "0x1234567890abcdef",
-		TxHash:    "0xabcdef1234567890",
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-		Nonce:     12345,
-		Sender:    "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
-		To:        "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b7",
-		Value:     big.NewInt(0),
-		Data:      nil,
-		ChainID:   "1",
-	}
-
-	originalEventID := "original_event_id_456"
-
-	// Create update event with reference
-	event, err := UpdateTxLogEvent(logData, &nostr.Event{ID: originalEventID})
-	if err != nil {
-		t.Fatalf("Failed to create update event: %v", err)
-	}
-
-	// Check that the event reference is included
-	foundEventRef := false
-	for _, tag := range event.Tags {
-		if len(tag) >= 3 && tag[0] == "e" && tag[1] == originalEventID && tag[2] == "reply" {
-			foundEventRef = true
-			break
-		}
-	}
-
-	if !foundEventRef {
-		t.Error("Expected event reference tag not found")
-	}
-
-	// Check that update tag is present
-	foundUpdateTag := false
-	for _, tag := range event.Tags {
-		if len(tag) >= 2 && tag[0] == "t" && tag[1] == "update" {
-			foundUpdateTag = true
-			break
-		}
-	}
-
-	if !foundUpdateTag {
-		t.Error("Expected update tag not found")
-	}
-
-	// Parse the content to verify the event type
-	var txLogEvent TxLogEvent
-	err = json.Unmarshal([]byte(event.Content), &txLogEvent)
-	if err != nil {
-		t.Fatalf("Failed to parse event content: %v", err)
-	}
-
-	if txLogEvent.EventType != EventTypeTxLogUpdated {
-		t.Errorf("Expected event type %s, got %s", EventTypeTxLogUpdated, txLogEvent.EventType)
-	}
-}
-
 func TestParseTxLogEvent(t *testing.T) {
 	// Create log data
 	logData := neth.Log{
