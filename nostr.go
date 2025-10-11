@@ -39,6 +39,7 @@ type GroupUpdatedEvent = event.GroupUpdatedEvent
 // Re-export log package constants
 const (
 	KindTxLog       = event.KindTxLog
+	KindTxTransfer  = event.KindTxTransfer
 	EventUserOpKind = event.EventUserOpKind
 
 	TopicERC20Transfer = neth.TopicERC20Transfer
